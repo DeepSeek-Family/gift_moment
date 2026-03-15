@@ -17,7 +17,6 @@ const giftWorker = new Worker(
             const card = await Cards.findById((gift as any).cardId as Types.ObjectId);
             const filePath = card?.file ? card.file.replace(/^\//, "") : "";
             const viewGiftUrl = `${baseUrl}/${filePath}`;
-            console.log("viewGiftUrl\n\n\n", viewGiftUrl);
 
             const html = emailTemplate.giftEmailTemplate(
                 (gift as any).senderId?.name || "Gift Moment",
