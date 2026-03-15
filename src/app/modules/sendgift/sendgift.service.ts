@@ -5,6 +5,8 @@ import { ISendGift } from './sendgift.interface';
 import { USER_ROLES } from '../../../enums/user';
 import { SendGift } from './sendgift.model';
 import { giftQueue } from '../../../config/bullMQ.config';
+import { sendNotifications } from '../../../helpers/notificationsHelper';
+import { Types } from 'mongoose';
 
 
 const createSendGiftForUserIntoDB = async (user: JwtPayload, payload: ISendGift) => {
@@ -55,6 +57,15 @@ const createSendGiftForUserIntoDB = async (user: JwtPayload, payload: ISendGift)
             delay: scheduleDateTime.getTime() - new Date().getTime(),
         }
     );
+    await sendNotifications({
+        text: "Scheduled Gift Sent",
+        receiver: receiverEmail?._id as any as Types.ObjectId || new Types.ObjectId(),
+        referenceId: result._id as any as Types.ObjectId,
+        message: `Your birthday card to ${sender?.name as string} was scheduled`,
+        sender: sender?._id as any as Types.ObjectId,
+        screen: "GIFT",
+        type: "USER",
+    });
 
 
     return result;

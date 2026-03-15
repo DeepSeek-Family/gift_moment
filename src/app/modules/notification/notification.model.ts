@@ -12,12 +12,22 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
             ref: 'User',
             required: true
         },
-        referenceId: {
+        message: {
             type: String,
+            required: false
+        },
+        sender: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: false
+        },
+        referenceId: {
+            type: Schema.Types.ObjectId,
             required: false
         },
         screen: {
             type: String,
+            enum: ['GIFT', 'BOOKED_CARD', 'CHAT'],
             required: false
         },
         read: {
@@ -26,7 +36,7 @@ const notificationSchema = new Schema<INotification, NotificationModel>(
         },
         type: {
             type: String,
-            enum: ['ADMIN'],
+            enum: ['ADMIN', 'USER'],
             required: false
         }
     },
