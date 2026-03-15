@@ -43,7 +43,7 @@ const giftWorker = new Worker(
                     sender: (gift as any).senderId?._id as any as Types.ObjectId,
                     message: `${(gift as any).senderId?.name} sent you a gift`,
                     referenceId: gift._id as any as Types.ObjectId,
-                    screen: "CHAT",
+                    screen: "GIFT",
                     type: "ADMIN",
                 });
 
