@@ -5,12 +5,22 @@ import { Morgan } from "./shared/morgan";
 import router from "./app/routes";
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import session from "express-session";
+import handleStripeWebhook from "./helpers/handleStripeWebhook";
 const app = express();
+
+
+
+
+//! stripe
+// app.post(
+//     '/api/stripe/webhook',
+//     express.raw({ type: 'application/json' }),
+//     handleStripeWebhook
+// );
 
 // morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
-
 
 //body parser
 app.use(cors());

@@ -14,7 +14,10 @@ const createQueue = (name: string) => {
     connection: connectionBullMQ,
     defaultJobOptions: {
       attempts: 3,
-      backoff: { type: "exponential", delay: 5000 },
+      backoff: {
+        type: "exponential",
+        delay: 5000,
+      },
       removeOnComplete: {
         age: 3600,
         count: 100,

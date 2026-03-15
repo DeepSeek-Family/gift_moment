@@ -18,9 +18,10 @@ export default {
     tokenVersion: process.env.tokenVersion!,
   },
   stripe: {
-    stripeSecretKey: process.env.STRIPE_API_SECRET,
-    webhookSecret: process.env.WEBHOOK_SECRET,
-    paymentSuccess: process.env.WEBHOOK_SECRET,
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    paymentSuccess: process.env.STRIPE_SUCCESS_URL,
+    paymentCancel: process.env.STRIPE_CANCEL_URL,
   },
   email: {
     from: process.env.EMAIL_FROM,
