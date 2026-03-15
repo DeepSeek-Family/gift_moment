@@ -1,0 +1,2 @@
+# Ensure Markdown uses LF so GitHub renders structure and code blocks correctly.
+*.md text eol=lf
