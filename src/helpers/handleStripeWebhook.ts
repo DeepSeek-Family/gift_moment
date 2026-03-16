@@ -12,6 +12,7 @@ import { logger } from '../shared/logger';
 import config from '../config';
 import ApiError from '../errors/ApiErrors';
 import stripe from '../config/stripe';
+import { handleCheckoutSessionCompleted, handleCheckoutSessionExpired } from '../handlers/handleCheckoutSessionCompleted';
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
 
@@ -44,6 +45,14 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
                 await handleSubscriptionCreated(data as Stripe.Subscription);
                 break;
 
+            case 'checkout.session.completed':
+                await handleCheckoutSessionCompleted(data as unknown as Stripe.Checkout.Session);
+                break;
+            case "checkout.session.expired":
+                await handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session);
+                break;
+
+
             case 'customer.subscription.updated':
                 await handleSubscriptionUpdated(data as Stripe.Subscription);
                 break;
@@ -60,7 +69,7 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
                 logger.warn(colors.bgGreen.bold(`Unhandled event type: ${eventType}`));
         }
     } catch (error) {
-        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR,`Error handling event: ${error}`,);
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, `Error handling event: ${error}`,);
     }
 
     res.sendStatus(200);

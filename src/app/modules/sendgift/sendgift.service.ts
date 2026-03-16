@@ -1,112 +1,121 @@
-import { JwtPayload } from 'jsonwebtoken';
-import { Cards } from '../cards/cards.model';
-import { User } from '../user/user.model';
-import { ISendGift } from './sendgift.interface';
-import { USER_ROLES } from '../../../enums/user';
-import { SendGift } from './sendgift.model';
-import { giftQueue } from '../../../config/bullMQ.config';
-import { sendNotifications } from '../../../helpers/notificationsHelper';
-import { Types } from 'mongoose';
-import stripe from '../../../config/stripe';
-import QueryBuilder from '../../builder/queryBuilder';
+import { Types } from "mongoose";
+import { StatusCodes } from "http-status-codes";
+import { JwtPayload } from "jsonwebtoken";
+import { ISendGift } from "./sendgift.interface";
+import { SendGift } from "./sendgift.model";
+import { Cards } from "../cards/cards.model";
+import { User } from "../user/user.model";
+import config from "../../../config";
+import ApiError from "../../../errors/ApiErrors";
+import { USER_ROLES } from "../../../enums/user";
+import stripe from "../../../config/stripe";
+import { sendNotifications } from "../../../helpers/notificationsHelper";
+import { enqueueGift } from "../../../util/enqueueGift";
+import { parseBookingDateTime } from "../../../util/parseBookingDateTime";
+import QueryBuilder from "../../builder/queryBuilder";
 
+const TOLERANCE_MS = 60_000;
 
-const createSendGiftForUserIntoDB = async (user: JwtPayload, payload: ISendGift) => {
+export const createSendGiftForUserIntoDB = async (
+    user: JwtPayload,
+    payload: ISendGift
+) => {
     payload.senderId = user.id;
-    const [card, sender, receiverEmail] = await Promise.all([
+
+    const [card, sender, receiver] = await Promise.all([
         Cards.findById(payload.cardId),
         User.findById(payload.senderId),
         User.findOne({ email: payload.receiverEmail }),
     ]);
 
-    if (receiverEmail) {
-        payload.receiverId = receiverEmail._id;
-    }
 
-    if (!card || !sender) {
-        return {
-            status: "card_error",
-            message: "Failed to create gift or sender not found",
-        } as const
-    }
-    if (sender.role !== USER_ROLES.USER) {
-        return {
-            status: "unauthorized",
-            message: "Unauthorized to create gift",
-        } as const
-    }
-    const result = await SendGift.create(payload);
-    const rawDate = payload.bookingDate;
-    const rawTime = payload.bookingTime;
-    let formattedDate = rawDate;
+    if (!card) throw new ApiError(StatusCodes.NOT_FOUND, "Card not found");
+    if (!sender) throw new ApiError(StatusCodes.NOT_FOUND, "Sender not found");
+    if (sender.role !== USER_ROLES.USER)
+        throw new ApiError(StatusCodes.FORBIDDEN, "Unauthorized to send gifts");
 
-    if (/^\d{2}-\d{2}-\d{4}$/.test(rawDate)) {
-        const [day, month, year] = rawDate.split("-");
-        formattedDate = `${year}-${month}-${day}`;
-    }
+    const scheduleDateTime = parseBookingDateTime(payload.bookingDate, payload.bookingTime);
+    if (isNaN(scheduleDateTime.getTime()))
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid booking date or time format");
+    if (scheduleDateTime.getTime() < Date.now() - TOLERANCE_MS)
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Booking date and time must be in the future");
 
-    const isoString = `${formattedDate}T${rawTime}`;
+    if (receiver) payload.receiverId = receiver._id as Types.ObjectId;
 
-    const scheduleDateTime = new Date(isoString);
-    const timestamp = scheduleDateTime.getTime();
-    const now = new Date();
-    // 1 minute tolerance window (in milliseconds)
-    const toleranceMs = 60_000;
-    if (timestamp < (now.getTime() - toleranceMs)) {
-        return {
-            status: "booking_error",
-            message: "Booking date and time must be in the future!",
-        } as const;
-    }
-    let delay = timestamp - now.getTime();
-    if (delay < 0) {
-        delay = 0; // run immediately
-    }
 
-    await giftQueue.add(
-        "sendGift",
-        { giftId: result._id.toString() },
-        {
-            delay: Number.isFinite(delay) ? delay : 0,
-            attempts: 3,
-            backoff: {
-                type: "exponential",
-                delay: 5000,
-            },
+    if (card.isFree !== true && card.price > 0) {
+        const gift = await SendGift.create({
+            ...payload,
+            status: "pending",
+            paymentStatus: "unpaid",
+        });
+
+        let session: Awaited<ReturnType<typeof stripe.checkout.sessions.create>>;
+        try {
+            session = await stripe.checkout.sessions.create({
+                mode: "payment",
+                payment_method_types: ["card"],
+                line_items: [
+                    {
+                        price_data: {
+                            currency: "usd",
+                            unit_amount: Math.round(card.price * 100),
+                            product_data: {
+                                name: "Gift Card",
+                                description: payload.message ?? "Gift Card Purchase",
+                            },
+                        },
+                        quantity: 1,
+                    },
+                ],
+                metadata: {
+                    giftId: gift._id.toString(),
+                    senderId: sender._id.toString(),
+                    receiverId: receiver?._id?.toString() ?? "",
+                },
+                success_url: config.stripe.paymentSuccess,
+                cancel_url: config.stripe.paymentCancel,
+            });
+        } catch (error) {
+            await SendGift.findByIdAndDelete(gift._id);
+            throw new ApiError(StatusCodes.BAD_GATEWAY, "Failed to create checkout session");
         }
-    );
 
-    // TODO: need to implement payment gateway stripe for this gift
-    // if (card.isFree !== true && card.price > 0) {
-    //     await stripe.paymentIntents.create({
-    //         amount: Number(card.price) * 100,
-    //         currency: "usd",
-    //         description: `Gift card payment for ${card._id.toString()}`,
-    //         payment_method: payload.paymentMethodId || "card_default",
-    //         confirm: true,
-    //     });
-    // }
-    // *
-    // send notification to receiver and sender
-    // * / 
+        await SendGift.findByIdAndUpdate(gift._id, {
+            paymentIntentId: session.id,
+        });
+
+        return {
+            url: session.url,
+            giftId: gift._id,
+        };
+    }
+
+    const gift = await SendGift.create({
+        ...payload,
+        status: "pending",
+        paymentStatus: "paid",
+    });
+
+    await enqueueGift(gift._id, scheduleDateTime);
+
     await sendNotifications({
         text: "Scheduled Gift Sent",
-        receiver: receiverEmail?._id as any as Types.ObjectId || new Types.ObjectId(),
-        referenceId: result._id as any as Types.ObjectId,
-        message: `Your birthday card to ${sender?.name as string} was scheduled`,
-        sender: sender?._id as any as Types.ObjectId,
+        receiver: (receiver?._id ?? new Types.ObjectId()) as Types.ObjectId,
+        referenceId: gift._id as Types.ObjectId,
+        message: `Your birthday card to ${sender.name} was scheduled`,
+        sender: sender._id as Types.ObjectId,
         screen: "GIFT",
         type: "USER",
     });
 
-    return result;
-}
+    return gift;
+};
 
 
 
-// my all gift
-const getMyGiftsFromDB = async (user: JwtPayload, query: Record<string, any>) => {
-    const qb = new QueryBuilder(SendGift.find({ receiverId: user.id }), query).fields().sort().paginate().populate(["cardId", "receiverId"], {});
+const getMyGiftsFromDB = async (user: JwtPayload, query: any) => {
+    const qb = new QueryBuilder(SendGift.find({ receiverId: user.id }), query).fields().sort().paginate();
     const [result, paginationInfo] = await Promise.all([
         qb.modelQuery.exec(),
         qb.getPaginationInfo(),
@@ -117,4 +126,8 @@ const getMyGiftsFromDB = async (user: JwtPayload, query: Record<string, any>) =>
     };
 }
 
-export const SendGiftServices = { createSendGiftForUserIntoDB, getMyGiftsFromDB };
+
+export const sendGiftServices = {
+    createSendGiftForUserIntoDB,
+    getMyGiftsFromDB,
+};

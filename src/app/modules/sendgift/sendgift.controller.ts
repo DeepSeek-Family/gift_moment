@@ -1,37 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { SendGiftServices } from './sendgift.service';
 import sendResponse from '../../../shared/sendResponse';
 import catchAsync from '../../../shared/catchAsync';
 import { StatusCodes } from 'http-status-codes';
+import { sendGiftServices } from './sendgift.service';
 
 const sendGift = catchAsync(async (req: Request, res: Response) => {
     const user = req.user;
     const payload = req.body;
-    const result = await SendGiftServices.createSendGiftForUserIntoDB(user, payload);
+    const result = await sendGiftServices.createSendGiftForUserIntoDB(user, payload);
     if ('status' in result && result.status === "failed") {
         return sendResponse(res, {
             statusCode: StatusCodes.BAD_REQUEST,
-            success: false,
-            message: result.message,
-        });
-    }
-    if ('status' in result && result.status === "booking_error") {
-        return sendResponse(res, {
-            statusCode: StatusCodes.BAD_REQUEST,
-            success: false,
-            message: result.message,
-        });
-    }
-    if ('status' in result && result.status === "card_error") {
-        return sendResponse(res, {
-            statusCode: StatusCodes.BAD_REQUEST,
-            success: false,
-            message: result.message,
-        });
-    }
-    if ('status' in result && result.status === "unauthorized") {
-        return sendResponse(res, {
-            statusCode: StatusCodes.UNAUTHORIZED,
             success: false,
             message: result.message,
         });
@@ -48,7 +27,7 @@ const sendGift = catchAsync(async (req: Request, res: Response) => {
 const getMyGifts = catchAsync(async (req: Request, res: Response) => {
     const user = req.user;
     const query = req.query;
-    const result = await SendGiftServices.getMyGiftsFromDB(user, query);
+    const result = await sendGiftServices.getMyGiftsFromDB(user, query);
     sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,

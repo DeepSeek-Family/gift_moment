@@ -8,7 +8,9 @@ export type ISendGift = {
     message?: string;
     bookingDate: string;
     bookingTime: string;
+    paymentIntentId?: string; // store Stripe session ID for later verification
     status: "sent" | "failed" | "cancelled" | "pending";
+    paymentStatus?: "unpaid" | "paid" | "failed"; // track payment status for paid gifts
 };
 
 export type SendGiftModel = Model<ISendGift>;

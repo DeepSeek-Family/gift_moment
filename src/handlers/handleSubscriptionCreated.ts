@@ -2,9 +2,9 @@ import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
 import ApiError from '../errors/ApiErrors';
 import stripe from '../config/stripe';
-const User:any = "";
-const PricingPlan:any = "";
-const Subscription:any = "";
+import { User } from '../app/modules/user/user.model';
+import { Package } from '../app/modules/package/package.model';
+import { Subscription } from '../app/modules/subscription/subscription.model';
 
 export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
 
@@ -12,7 +12,7 @@ export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
     const subscription = await stripe.subscriptions.retrieve(data.id);
 
     // Retrieve the customer associated with the subscription
-    const customer = (await stripe.customers.retrieve( subscription.customer as string)) as Stripe.Customer;
+    const customer = (await stripe.customers.retrieve(subscription.customer as string)) as Stripe.Customer;
 
     // Extract the price ID from the subscription items
     const priceId = subscription.items.data[0]?.price?.id;
@@ -24,13 +24,13 @@ export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
     const amountPaid = invoice?.total / 100;
 
     if (customer?.email) {
-        
+
         const existingUser = await User.findOne({ email: customer?.email });
-    
+
         if (existingUser) {
             // Find the pricing plan by priceId
-            const pricingPlan = await PricingPlan.findOne({ priceId });
-    
+            const pricingPlan = await Package.findOne({ priceId });
+
             if (pricingPlan) {
 
                 // Find the current active subscription
@@ -38,11 +38,11 @@ export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
                     userId: existingUser._id,
                     status: 'active',
                 });
-    
+
                 if (currentActiveSubscription) {
-                    throw new ApiError(StatusCodes.CONFLICT,'User already has an active subscription.');
+                    throw new ApiError(StatusCodes.CONFLICT, 'User already has an active subscription.');
                 }
-    
+
                 // Create a new subscription record
                 const newSubscription = new Subscription({
                     userId: existingUser._id,
@@ -52,9 +52,9 @@ export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
                     amountPaid,
                     trxId,
                 });
-    
+
                 await newSubscription.save();
-        
+
                 // Update the user to reflect the active subscription
                 await User.findByIdAndUpdate(
                     existingUser._id,
