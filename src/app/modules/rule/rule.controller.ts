@@ -1,88 +1,33 @@
-import { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-import catchAsync from '../../../shared/catchAsync';
-import sendResponse from '../../../shared/sendResponse';
-import { RuleService } from './rule.service';
+import { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
+import catchAsync from "../../../shared/catchAsync";
+import sendResponse from "../../../shared/sendResponse";
+import { RuleService } from "./rule.service";
 
+const createRule = catchAsync(async (req: Request, res: Response) => {
+  const { ...ruleData } = req.body;
+  const result = await RuleService.createRuleToDB(ruleData);
 
-//privacy policy
-const createPrivacyPolicy = catchAsync(async (req: Request, res: Response) => {
-    const { ...privacyData } = req.body
-    const result = await RuleService.createPrivacyPolicyToDB(privacyData)
-  
-    sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: 'Privacy policy created successfully',
-        data: result
-    })
-})
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: `${ruleData.type} created successfully`,
+    data: result,
+  });
+});
 
-const getPrivacyPolicy = catchAsync(async (req: Request, res: Response) => {
-    const result = await RuleService.getPrivacyPolicyFromDB()
-  
-    sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: 'Privacy policy retrieved successfully',
-        data: result
-    })
-})
+const getRule = catchAsync(async (req: Request, res: Response) => {
+  const result = await RuleService.getRuleFromDB(req.params.type);
 
-
-//terms and conditions
-const createTermsAndCondition = catchAsync( async (req: Request, res: Response) => {
-    const { ...termsData } = req.body
-    const result = await RuleService.createTermsAndConditionToDB(termsData)
-  
-    sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: 'Terms and conditions created successfully',
-        data: result
-    })
-})
-  
-const getTermsAndCondition = catchAsync(async (req: Request, res: Response) => {
-    const result = await RuleService.getTermsAndConditionFromDB()
-  
-    sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: 'Terms and conditions retrieved successfully',
-        data: result
-    })
-})
-
-//about
-const createAbout = catchAsync(async (req: Request, res: Response) => {
-    const { ...aboutData } = req.body
-    const result = await RuleService.createAboutToDB(aboutData)
-  
-    sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: 'About created successfully',
-        data: result
-    })
-})
-  
-const getAbout = catchAsync(async (req: Request, res: Response) => {
-    const result = await RuleService.getAboutFromDB()
-  
-    sendResponse(res, {
-        success: true,
-        statusCode: StatusCodes.OK,
-        message: 'About retrieved successfully',
-        data: result
-    })
-})
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: `${req.params.type} retrieved successfully`,
+    data: result,
+  });
+});
 
 export const RuleController = {
-    createPrivacyPolicy,
-    getPrivacyPolicy,
-    createTermsAndCondition,
-    getTermsAndCondition,
-    createAbout,
-    getAbout
-}  
+  createRule,
+  getRule,
+};

@@ -8,10 +8,14 @@ import { IErrorMessage } from '../../types/errors.types';
 import { StatusCodes } from 'http-status-codes';
 
 const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
-    config.node_env === 'development'
-        ? console.log('🚨 globalErrorHandler', error)
-        : errorLogger.error('🚨 globalErrorHandler', error);
-
+    if (config.node_env === 'development') {
+        console.error('🚨 globalErrorHandler');
+        // Safe printing
+        console.error('Error message:', error?.message || error);
+        console.error('Error stack:', error?.stack || 'no stack available');
+    } else {
+        errorLogger.error('🚨 globalErrorHandler', error);
+    }
     let statusCode = 500;
     let message = 'Something went wrong';
     let errorMessages: IErrorMessage[] = [];

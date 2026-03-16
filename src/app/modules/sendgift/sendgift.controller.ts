@@ -44,4 +44,19 @@ const sendGift = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-export const SendGiftController = { sendGift };
+
+const getMyGifts = catchAsync(async (req: Request, res: Response) => {
+    const user = req.user;
+    const query = req.query;
+    const result = await SendGiftServices.getMyGiftsFromDB(user, query);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'My gifts retrieved successfully',
+        data: result.data,
+        pagination: result.pagination,
+    });
+});
+
+
+export const SendGiftController = { sendGift, getMyGifts };

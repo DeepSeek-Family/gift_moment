@@ -60,19 +60,19 @@ const subscriptionsFromDB = async (query: Record<string, unknown>): Promise<ISub
                 { paymentType: { $regex: search, $options: "i" } },
             ]
         }).distinct("_id");
-    
+
         if (matchingPackageIds.length) {
             anyConditions.push({
                 package: { $in: matchingPackageIds }
             });
         }
     }
-    
-    
+
+
 
     if (paymentType) {
         anyConditions.push({
-            package: { $in: await Package.find({paymentType: paymentType}).distinct("_id")  }
+            package: { $in: await Package.find({ paymentType: paymentType }).distinct("_id") }
         })
     }
 
@@ -96,7 +96,7 @@ const subscriptionsFromDB = async (query: Record<string, unknown>): Promise<ISub
         .limit(size);
 
     const count = await Subscription.countDocuments(whereConditions);
-    
+
     const data: any = {
         data: result,
         meta: {

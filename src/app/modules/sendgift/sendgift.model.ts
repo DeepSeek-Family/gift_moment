@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 import { ISendGift, SendGiftModel } from './sendgift.interface';
 
 const sendGiftSchema = new Schema<ISendGift, SendGiftModel>({
-    cardId: { type: Schema.Types.ObjectId, ref: 'Card', required: true },
+    cardId: { type: Schema.Types.ObjectId, ref: 'Cards', required: true },
     senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     receiverId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
     receiverEmail: { type: String, required: true },

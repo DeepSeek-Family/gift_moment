@@ -8,6 +8,7 @@ import { giftQueue } from '../../../config/bullMQ.config';
 import { sendNotifications } from '../../../helpers/notificationsHelper';
 import { Types } from 'mongoose';
 import stripe from '../../../config/stripe';
+import QueryBuilder from '../../builder/queryBuilder';
 
 
 const createSendGiftForUserIntoDB = async (user: JwtPayload, payload: ISendGift) => {
@@ -34,23 +35,44 @@ const createSendGiftForUserIntoDB = async (user: JwtPayload, payload: ISendGift)
             message: "Unauthorized to create gift",
         } as const
     }
-
     const result = await SendGift.create(payload);
-    console.log("result", result);
+    const rawDate = payload.bookingDate;
+    const rawTime = payload.bookingTime;
+    let formattedDate = rawDate;
 
-    const scheduleDateTime = new Date(`${payload.bookingDate} ${payload.bookingTime}`);
-    if (scheduleDateTime < new Date()) {
+    if (/^\d{2}-\d{2}-\d{4}$/.test(rawDate)) {
+        const [day, month, year] = rawDate.split("-");
+        formattedDate = `${year}-${month}-${day}`;
+    }
+
+    const isoString = `${formattedDate}T${rawTime}`;
+
+    const scheduleDateTime = new Date(isoString);
+    const timestamp = scheduleDateTime.getTime();
+    const now = new Date();
+    // 1 minute tolerance window (in milliseconds)
+    const toleranceMs = 60_000;
+    if (timestamp < (now.getTime() - toleranceMs)) {
         return {
             status: "booking_error",
-            message: "Booking date and time must be in the future",
-        } as const
+            message: "Booking date and time must be in the future!",
+        } as const;
+    }
+    let delay = timestamp - now.getTime();
+    if (delay < 0) {
+        delay = 0; // run immediately
     }
 
     await giftQueue.add(
         "sendGift",
         { giftId: result._id.toString() },
         {
-            delay: scheduleDateTime.getTime() - new Date().getTime(),
+            delay: Number.isFinite(delay) ? delay : 0,
+            attempts: 3,
+            backoff: {
+                type: "exponential",
+                delay: 5000,
+            },
         }
     );
 
@@ -60,7 +82,7 @@ const createSendGiftForUserIntoDB = async (user: JwtPayload, payload: ISendGift)
     //         amount: Number(card.price) * 100,
     //         currency: "usd",
     //         description: `Gift card payment for ${card._id.toString()}`,
-    //         // payment_method: payload.paymentMethodId,
+    //         payment_method: payload.paymentMethodId || "card_default",
     //         confirm: true,
     //     });
     // }
@@ -80,4 +102,19 @@ const createSendGiftForUserIntoDB = async (user: JwtPayload, payload: ISendGift)
     return result;
 }
 
-export const SendGiftServices = { createSendGiftForUserIntoDB };
+
+
+// my all gift
+const getMyGiftsFromDB = async (user: JwtPayload, query: Record<string, any>) => {
+    const qb = new QueryBuilder(SendGift.find({ receiverId: user.id }), query).fields().sort().paginate().populate(["cardId", "receiverId"], {});
+    const [result, paginationInfo] = await Promise.all([
+        qb.modelQuery.exec(),
+        qb.getPaginationInfo(),
+    ]);
+    return {
+        data: result || [],
+        pagination: paginationInfo,
+    };
+}
+
+export const SendGiftServices = { createSendGiftForUserIntoDB, getMyGiftsFromDB };

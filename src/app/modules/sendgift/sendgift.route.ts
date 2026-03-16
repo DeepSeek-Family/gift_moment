@@ -9,8 +9,7 @@ const router = express.Router();
 
 router.route('/')
     .post(auth(USER_ROLES.USER, USER_ROLES.SUPER_ADMIN),
-        //  validateRequest(SendGiftValidations.createSendGiftZodSchema),
-        SendGiftController.sendGift);
-// .get(auth(USER_ROLES.USER), SendGiftController.getSendGift);
+        SendGiftController.sendGift)
+    .get(auth(USER_ROLES.USER, USER_ROLES.SUPER_ADMIN), SendGiftController.getMyGifts);
 
 export const SendGiftRoutes = router;

@@ -5,7 +5,7 @@ import { IBookedcard, BookedcardModel } from './bookedcard.interface';
 const bookedcardSchema = new Schema<IBookedcard, BookedcardModel>({
     bookingDate: { type: String, required: true },
     bookingTime: { type: String, required: true },
-    cardId: { type: Schema.Types.ObjectId, ref: 'Card', required: true },
+    cardId: { type: Schema.Types.ObjectId, ref: 'Cards', required: true },
     senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     receiverId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     receiverEmail: { type: String, required: true },
