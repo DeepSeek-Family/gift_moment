@@ -8,6 +8,7 @@ import { Server } from "socket.io";
 import seedSuperAdmin from "./DB";
 import "./worker/email.worker"; // Start BullMQ worker
 import "./worker/gift.worker"; // Start BullMQ worker
+import "./worker/message.worker"; // Start BullMQ worker
 // redis client
 import "./config/redis.config";
 import { RedisClient } from "./config/redis.config";

@@ -3,6 +3,6 @@ import { BookedcardController } from './bookedcard.controller';
 
 const router = express.Router();
 
-router.get('/', BookedcardController); 
+// router.get('/', BookedcardController); 
 
 export const BookedcardRoutes = router;

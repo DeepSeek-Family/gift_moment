@@ -12,6 +12,7 @@ import { Chat } from "../app/modules/chat/chat.model";
 import { ChatService } from "../app/modules/chat/chat.service";
 import { MessageService } from "../app/modules/message/message.service";
 import { sendNotifications } from "../helpers/notificationsHelper";
+import { JwtPayload } from "jsonwebtoken";
 const giftWorker = new Worker(
     "giftQueue",
     async (job: any) => {
@@ -32,11 +33,14 @@ const giftWorker = new Worker(
                     (gift as any).senderId?._id,
                     (gift as any).receiverId?._id,
                 ]);
-                await MessageService.sendMessageToDB({
-                    chatId: chat._id as any as Types.ObjectId,
-                    sender: (gift as any).senderId?._id,
-                    text: gift.message || "No message provided",
-                });
+                await MessageService.sendMessageToQueue(
+                    {
+                        chatId: chat._id as any as Types.ObjectId,
+                        sender: (gift as any).senderId?._id,
+                        text: gift.message || "No message provided",
+                    },
+                    { user: (gift as any).senderId as any as JwtPayload }
+                );
                 await sendNotifications({
                     text: "Gift received!",
                     receiver: (gift as any).receiverId?._id as any as Types.ObjectId || new Types.ObjectId(),
@@ -46,7 +50,6 @@ const giftWorker = new Worker(
                     screen: "GIFT",
                     type: "ADMIN",
                 });
-
             }
             await sendNotifications({
                 text: "Scheduled Gift Sent",
