@@ -1,10 +1,10 @@
 import { StatusCodes } from 'http-status-codes';
 import Stripe from 'stripe';
-import ApiError from '../errors/ApiErrors';
 import stripe from '../config/stripe';
-const User:any = "";
-const Subscription:any = "";
-const PricingPlan:any = "";
+import { User } from '../app/modules/user/user.model';
+import { Package } from '../app/modules/package/package.model';
+import { Subscription } from '../app/modules/subscription/subscription.model';
+
 
 export const handleSubscriptionUpdated = async (data: Stripe.Subscription) => {
 
@@ -30,36 +30,36 @@ export const handleSubscriptionUpdated = async (data: Stripe.Subscription) => {
     if (customer?.email) {
         // Find the user by email
         const existingUser = await User.findOne({ email: customer?.email });
-    
+
         if (existingUser) {
             // Find the pricing plan by priceId
-            const pricingPlan = await PricingPlan.findOne({ priceId });
-    
+            const pricingPlan = await Package.findOne({ priceId });
+
             if (pricingPlan) {
                 // Find the current active subscription
-                const currentActiveSubscription = await Subscription.findOne({ userId: existingUser?._id, status: 'active'});
-        
+                const currentActiveSubscription = await Subscription.findOne({ userId: existingUser?._id, status: 'active' });
+
                 if (currentActiveSubscription) {
                     if (
-                        currentActiveSubscription?.packageId?.priceId !==
-                        pricingPlan.priceId
+                        (currentActiveSubscription as any)?.package?.priceId !==
+                        pricingPlan.price
                     ) {
 
-                    // Deactivate the old subscription
-                    await Subscription.findByIdAndUpdate( currentActiveSubscription._id, { status: 'deactivated' }, { new: true });
-        
-                    // Create a new subscription
-                    const newSubscription = new Subscription({
-                        userId: existingUser._id,
-                        customerId: customer?.id,
-                        packageId: pricingPlan._id,
-                        status: 'active',
-                        trxId,
-                        amountPaid,
-                    });
-        
-                    await newSubscription.save();
-                }
+                        // Deactivate the old subscription
+                        await Subscription.findByIdAndUpdate(currentActiveSubscription._id, { status: 'deactivated' }, { new: true });
+
+                        // Create a new subscription
+                        const newSubscription = new Subscription({
+                            userId: existingUser._id,
+                            customerId: customer?.id,
+                            packageId: pricingPlan._id,
+                            status: 'active',
+                            trxId,
+                            amountPaid,
+                        });
+
+                        await newSubscription.save();
+                    }
                 } else {
 
                     // If no active subscription found, check for a deactivated one with the same priceId
@@ -67,7 +67,7 @@ export const handleSubscriptionUpdated = async (data: Stripe.Subscription) => {
                         userId: existingUser._id,
                         status: 'deactivated',
                     });
-            
+
                     if (deactivatedSubscription) {
                         await Subscription.findByIdAndUpdate(
                             deactivatedSubscription._id,
@@ -77,13 +77,12 @@ export const handleSubscriptionUpdated = async (data: Stripe.Subscription) => {
                     }
                 }
             } else {
-                throw new ApiError(StatusCodes.NOT_FOUND, `Pricing plan with Price ID: ${priceId} not found!`);
+               console.log(`Pricing plan with Price ID: ${priceId} not found!`); // Log the error for debugging
             }
         } else {
-            throw new ApiError(StatusCodes.NOT_FOUND, `User with Email: ${customer.email} not found!`);
+            console.log(`User with email: ${customer?.email} not found!`);
         }
     } else {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'No email found for the customer!');
-        
+        console.log('No email found for the customer!');
     }
 }

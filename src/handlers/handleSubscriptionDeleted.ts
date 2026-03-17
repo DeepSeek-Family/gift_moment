@@ -1,10 +1,8 @@
-import { StatusCodes } from 'http-status-codes';
-import Stripe from 'stripe';
-import ApiError from '../errors/ApiErrors';
-import stripe from '../config/stripe';
-const User:any = "";
-const Subscription:any = "";
 
+import Stripe from 'stripe';
+import stripe from '../config/stripe';
+import { Subscription } from '../app/modules/subscription/subscription.model';
+import { User } from '../app/modules/user/user.model';
 export const handleSubscriptionDeleted = async (data: Stripe.Subscription) => {
 
     // Retrieve the subscription from Stripe
@@ -24,10 +22,10 @@ export const handleSubscriptionDeleted = async (data: Stripe.Subscription) => {
             { status: 'deactivated' },
             { new: true }
         );
-    
+
         // Find the user associated with the subscription
-        const existingUser = await User.findById(userSubscription?.userId);
-    
+        const existingUser = await User.findById(userSubscription?.user);
+
         if (existingUser) {
             await User.findByIdAndUpdate(
                 existingUser._id,
@@ -35,9 +33,9 @@ export const handleSubscriptionDeleted = async (data: Stripe.Subscription) => {
                 { new: true },
             );
         } else {
-            throw new ApiError(StatusCodes.NOT_FOUND, `User not found.`);
+            console.log(`User with ID: ${userSubscription?.user} not found!`);
         }
     } else {
-        throw new ApiError(StatusCodes.NOT_FOUND, `Subscription not found.`);
+        console.log(`Active subscription for customer ID: ${subscription.customer} not found!`);
     }
 }

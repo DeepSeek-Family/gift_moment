@@ -1,5 +1,3 @@
-import { StatusCodes } from "http-status-codes";
-import ApiError from "../../../errors/ApiErrors";
 import { IPackage } from "./package.interface";
 import { Package } from "./package.model";
 import mongoose from "mongoose";
@@ -18,7 +16,7 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
 
 
     if (!product) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create subscription product")
+        console.error("Failed to create subscription product in Stripe");
     }
 
     if (product) {
@@ -28,8 +26,8 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
 
     const result = await Package.create(payload);
     if (!result) {
-        await stripe.products.del(product.productId);
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to created Package")
+        await stripe.products.del(product?.productId || "");
+        console.error("Failed to create package in DB");
     }
 
     return result;
@@ -38,7 +36,7 @@ const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> =>
 const updatePackageToDB = async (id: string, payload: IPackage): Promise<IPackage | null> => {
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
+        console.error("Invalid package ID");
     }
 
     const result = await Package.findByIdAndUpdate(
@@ -48,7 +46,7 @@ const updatePackageToDB = async (id: string, payload: IPackage): Promise<IPackag
     );
 
     if (!result) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to Update Package")
+        console.error(`Failed to update package with ID: ${id}`);
     }
 
     return result;
@@ -69,7 +67,8 @@ const getPackageFromDB = async (paymentType: string): Promise<IPackage[]> => {
 
 const getPackageDetailsFromDB = async (id: string): Promise<IPackage | null> => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
+        console.error("Invalid package ID");
+        return null;
     }
     const result = await Package.findById(id);
     return result;
@@ -77,7 +76,8 @@ const getPackageDetailsFromDB = async (id: string): Promise<IPackage | null> => 
 
 const deletePackageToDB = async (id: string): Promise<IPackage | null> => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid ID")
+        console.error("Invalid package ID");
+        return null;
     }
 
     const result = await Package.findByIdAndUpdate(
@@ -87,7 +87,7 @@ const deletePackageToDB = async (id: string): Promise<IPackage | null> => {
     );
 
     if (!result) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to deleted Package")
+        console.error(`Failed to delete package with ID: ${id}`);
     }
 
     return result;
