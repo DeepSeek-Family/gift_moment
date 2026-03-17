@@ -209,6 +209,12 @@ const changePasswordToDB = async (
   payload: IChangePassword
 ) => {
   const { currentPassword, newPassword, confirmPassword } = payload;
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      `Please provide current ${!currentPassword ? "current password" : !newPassword ? "new password" : "confirm password"}`
+    );
+  }
   const isExistUser = await User.findById(user.id).select("+password");
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
