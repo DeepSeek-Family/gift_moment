@@ -3,12 +3,27 @@ import { USER_ROLES } from '../../../enums/user';
 import auth from '../../middlewares/auth';
 import { MessageController } from './message.controller';
 import { fileUploadHandler } from '../../../shared/fileUploadHandler';
+import { getSingleFilePath } from '../../middlewares/fileUploaderHandelar';
 const router = express.Router();
 
 router.post(
   '/',
-  fileUploadHandler(),
   auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER),
+  fileUploadHandler(),
+  async (req, res, next) => {
+    try {
+      const image = getSingleFilePath(
+        req.files as Record<string, Express.Multer.File[]>,
+        "image"
+      );
+      if (image) {
+        req.body.image = image;
+      }
+      next();
+    } catch (error) {
+      next(error);
+    }
+  },
   MessageController.sendMessage
 );
 router.get(

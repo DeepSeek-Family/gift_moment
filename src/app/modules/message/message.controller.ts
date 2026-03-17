@@ -5,21 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 import { MessageService } from './message.service';
 
 const sendMessage = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user.id;
-
-
-  let image;
-  if (req.files && "image" in req.files && req.files.image[0]) {
-    image = `/images/${req.files.image[0].filename}`;
-  }
-
-  const payload = {
-    ...req.body,
-    image:image,
-    sender: user,
-  };
-
-  const message = await MessageService.sendMessageToDB(payload);
+  const message = await MessageService.sendMessageToQueue(req.body, req.user);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,

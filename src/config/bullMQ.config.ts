@@ -29,4 +29,5 @@ const createQueue = (name: string) => {
 
 export const emailQueue = createQueue("emailQueue");
 export const giftQueue = createQueue("giftQueue");
+export const messageQueue = createQueue("messageQueue");
 
