@@ -31,7 +31,6 @@ Production-grade Node.js backend for the Gift Moment platform. Handles authentic
 | Language       | TypeScript          |
 | Database       | MongoDB + Mongoose  |
 | Cache/Queue    | Redis + BullMQ      |
-| Search         | MeiliSearch         |
 | Auth           | JWT, Passport       |
 | Payment        | Stripe              |
 | Real-Time      | Socket.io           |
@@ -200,6 +199,29 @@ npm start
 | `npm run test`       | Run test suite                             |
 | `npm run test:watch` | Run tests in watch mode                    |
 | `npm run create-module` | Generate new module (via `gm.ts`)      |
+
+---
+
+## API Documentation
+
+Base URL: `http://localhost:5000/api/v1`  
+Stripe Webhook URL: `http://localhost:5000/api/stripe/webhook`
+
+### Authentication
+
+Most protected endpoints require:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Role guards are applied per route (for example: `USER`, `ADMIN`, `SUPER_ADMIN`).
+
+Mongoose schema notes:
+
+- Collection: `SendGift`
+- Has `timestamps: true`
+- `status` default: `"pending"`
 
 ---
 
