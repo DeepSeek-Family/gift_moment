@@ -30,7 +30,7 @@ const updateBookedCardZodSchema = z.object({
 });
 
 
-export const BookedcardValidations = {
+export const BookedCardValidations = {
     createBookedCardZodSchema,
     updateBookedCardZodSchema
 };

@@ -1,12 +1,10 @@
 import { Types } from "mongoose";
-import { StatusCodes } from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
 import { ISendGift } from "./sendgift.interface";
 import { SendGift } from "./sendgift.model";
 import { Cards } from "../cards/cards.model";
 import { User } from "../user/user.model";
 import config from "../../../config";
-import ApiError from "../../../errors/ApiErrors";
 import { USER_ROLES } from "../../../enums/user";
 import stripe from "../../../config/stripe";
 import { sendNotifications } from "../../../helpers/notificationsHelper";
@@ -137,7 +135,7 @@ const getMyGiftsFromDB = async (user: JwtPayload, query: any) => {
         })
         .populate({
             path: "senderId",
-            select: "name email profileImage",
+            select: "name email profile",
         });
 
     const [result, paginationInfo] = await Promise.all([

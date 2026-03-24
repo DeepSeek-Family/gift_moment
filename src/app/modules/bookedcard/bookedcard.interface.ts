@@ -1,6 +1,6 @@
 import { Model, Types } from 'mongoose';
 
-export type IBookedcard = {
+export type IBookedCard = {
     cardId: Types.ObjectId;
     senderId: Types.ObjectId;
     bookingDate: string;
@@ -11,4 +11,4 @@ export type IBookedcard = {
     status: "booked" | "cancelled";
 };
 
-export type BookedcardModel = Model<IBookedcard>;
+export type BookedCardModel = Model<IBookedCard>;

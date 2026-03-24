@@ -1,5 +1,4 @@
 import QueryBuilder from '../../builder/queryBuilder';
-import { PaymentModel } from './payment.interface';
 import { Payment } from './payment.model';
 
 

@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import { StatusCodes } from "http-status-codes";
 import { Morgan } from "./shared/morgan";
@@ -7,8 +7,6 @@ import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import session from "express-session";
 import handleStripeWebhook from "./helpers/handleStripeWebhook";
 import requestIp from "request-ip";
-import rateLimit from "express-rate-limit";
-import ApiError from "./errors/ApiErrors";
 import { limiter } from "./rate-limit/rate-limit";
 const app = express();
 
@@ -46,9 +44,6 @@ app.use(session({
   cookie: { secure: false } // Secure should be true in production with HTTPS
 }));
 
-// Initialize Passport
-// app.use(passport.initialize());
-// app.use(passport.session());
 
 //router
 app.use('/api/v1', router);

@@ -1,4 +1,4 @@
-import { Model, Types } from "mongoose";
+import { Model } from "mongoose";
 import { USER_ROLES } from "../../../enums/user";
 // Stripe account related sub-document
 

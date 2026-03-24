@@ -1,5 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
-import { CardsModel, ICards } from './cards.interface';
+import {  ICards } from './cards.interface';
 import { Cards } from './cards.model';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';

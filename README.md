@@ -12,7 +12,6 @@ Production-grade Node.js backend for the Gift Moment platform. Handles authentic
 - **Real-Time** — Socket.io for chat and live notifications
 - **Payments** — Stripe integration and webhook handling
 - **Background Jobs** — BullMQ with Redis (email worker, gift worker)
-- **Search** — MeiliSearch for full-text search
 - **Notifications** — Firebase Cloud Messaging, in-app notifications
 - **Communications** — Nodemailer for email, Twilio for SMS
 - **File Uploads** — Multer for secure uploads
@@ -46,7 +45,6 @@ Production-grade Node.js backend for the Gift Moment platform. Handles authentic
 - **Node.js** 16 or higher
 - **MongoDB** 4.0+ (local or Atlas)
 - **Redis** 6.0+
-- **MeiliSearch** (optional, for search)
 - **Docker & Docker Compose** (optional, for running services)
 
 ---
@@ -66,8 +64,8 @@ gift-moment/
 │   │   │   ├── banner/
 │   │   │   ├── occasions/
 │   │   │   ├── cards/
-│   │   │   ├── sendgift/
-│   │   │   ├── bookedcard/
+│   │   │   ├── sendGift/
+│   │   │   ├── bookedCard/
 │   │   │   ├── chat/
 │   │   │   ├── message/
 │   │   │   ├── notification/
@@ -78,7 +76,7 @@ gift-moment/
 │   │   ├── routes/
 │   │   └── constant/
 │   ├── handlers/                 # Stripe/subscription event handlers
-│   ├── helpers/                  # Socket, email, Firebase, MeiliSearch, etc.
+│   ├── helpers/                  # Socket, email, Firebase, etc.
 │   ├── shared/                   # Logger, response, validation, upload
 │   ├── services/                 # Email and other shared services
 │   ├── worker/                   # BullMQ workers (email, gift)

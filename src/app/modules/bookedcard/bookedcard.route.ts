@@ -1,8 +1,8 @@
 import express from 'express';
-import { BookedcardController } from './bookedcard.controller';
+// import { BookedCardController } from './bookedCard.controller';
 
 const router = express.Router();
 
-// router.get('/', BookedcardController); 
+// router.get('/', BookedCardController); 
 
-export const BookedcardRoutes = router;
+export const BookedCardRoutes = router;

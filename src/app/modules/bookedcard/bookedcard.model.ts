@@ -1,8 +1,8 @@
 import { Schema, model } from 'mongoose';
-import { IBookedcard, BookedcardModel } from './bookedcard.interface';
+import { IBookedCard, BookedCardModel } from './bookedcard.interface';
 
 
-const bookedcardSchema = new Schema<IBookedcard, BookedcardModel>({
+const bookedCardSchema = new Schema<IBookedCard, BookedCardModel>({
     bookingDate: { type: String, required: true },
     bookingTime: { type: String, required: true },
     cardId: { type: Schema.Types.ObjectId, ref: 'Cards', required: true },
@@ -14,7 +14,7 @@ const bookedcardSchema = new Schema<IBookedcard, BookedcardModel>({
 }, {
     timestamps: true
 });
-bookedcardSchema.index({ cardId: 1, status: 1 });
-bookedcardSchema.index({ receiverId: 1, status: 1 });
-bookedcardSchema.index({ senderId: 1, status: 1 });
-export const Bookedcard = model<IBookedcard, BookedcardModel>('Bookedcard', bookedcardSchema); 
+bookedCardSchema.index({ cardId: 1, status: 1 });
+bookedCardSchema.index({ receiverId: 1, status: 1 });
+bookedCardSchema.index({ senderId: 1, status: 1 });
+export const BookedCard = model<IBookedCard, BookedCardModel>('BookedCard', bookedCardSchema); 

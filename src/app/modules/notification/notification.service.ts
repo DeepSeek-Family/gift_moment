@@ -1,5 +1,4 @@
 import { JwtPayload } from 'jsonwebtoken';
-import { INotification } from './notification.interface';
 import { Notification } from './notification.model';
 import QueryBuilder from '../../builder/queryBuilder';
 import ApiError from '../../../errors/ApiErrors';
