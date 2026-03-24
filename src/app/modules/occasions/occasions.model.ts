@@ -10,6 +10,5 @@ const occasionsSchema = new Schema<IOccasions, OccasionsModel>({
     timestamps: true,
 });
 
-occasionsSchema.index({ _id: 1 });
 
 export const Occasions = model<IOccasions, OccasionsModel>('Occasions', occasionsSchema);

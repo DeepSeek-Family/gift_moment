@@ -118,18 +118,38 @@ export const createSendGiftForUserIntoDB = async (
 
 
 const getMyGiftsFromDB = async (user: JwtPayload, query: any) => {
-    const qb = new QueryBuilder(SendGift.find({ receiverId: user.id }), query).fields().sort().paginate().populate(["cardId"], {
-        select: "file isFree price type isActive isAdmin occasionId createdAt updatedAt __v",
-    });
+    const qb = new QueryBuilder(
+        SendGift.find({ receiverId: user.id }),
+        query
+    )
+        .fields()
+        .sort()
+        .paginate();
+    qb.modelQuery = qb.modelQuery
+        .populate({
+            path: "cardId",
+            select:
+                "file isFree price type isActive isAdmin createdAt updatedAt",
+            populate: {
+                path: "occasionId",
+                select: "name",
+            },
+        })
+        .populate({
+            path: "senderId",
+            select: "name email profileImage",
+        });
+
     const [result, paginationInfo] = await Promise.all([
         qb.modelQuery.exec(),
         qb.getPaginationInfo(),
     ]);
+
     return {
         data: result || [],
         pagination: paginationInfo,
     };
-}
+};
 
 
 export const sendGiftServices = {

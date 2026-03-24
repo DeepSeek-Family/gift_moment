@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import { StatusCodes } from "http-status-codes";
 import { Morgan } from "./shared/morgan";
@@ -6,16 +6,23 @@ import router from "./app/routes";
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import session from "express-session";
 import handleStripeWebhook from "./helpers/handleStripeWebhook";
+import requestIp from "request-ip";
+import rateLimit from "express-rate-limit";
+import ApiError from "./errors/ApiErrors";
+import { limiter } from "./rate-limit/rate-limit";
 const app = express();
 
 
+// rate limit
 
+app.use(requestIp.mw());
+app.use(limiter);
 
 //! stripe
 app.post(
-    '/api/stripe/webhook',
-    express.raw({ type: 'application/json' }),
-    handleStripeWebhook
+  '/api/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
 );
 
 // morgan
@@ -33,10 +40,10 @@ app.use(express.static("public"));
 
 // Session middleware (must be before passport initialization)
 app.use(session({
-    secret: "your_secret_key",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // Secure should be true in production with HTTPS
+  secret: "your_secret_key",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Secure should be true in production with HTTPS
 }));
 
 // Initialize Passport
@@ -47,7 +54,7 @@ app.use(session({
 app.use('/api/v1', router);
 
 app.get("/", (req: Request, res: Response) => {
-    res.send("Hey Backend, How can I assist you ");
+  res.send("Hey Backend, How can I assist you ");
 })
 
 //global error handle
@@ -55,16 +62,16 @@ app.use(globalErrorHandler);
 
 // handle not found route
 app.use((req: Request, res: Response) => {
-    res.status(StatusCodes.NOT_FOUND).json({
-        success: false,
-        message: "Not Found",
-        errorMessages: [
-            {
-                path: req.originalUrl,
-                message: "API DOESN'T EXIST"
-            }
-        ]
-    })
+  res.status(StatusCodes.NOT_FOUND).json({
+    success: false,
+    message: "Not Found",
+    errorMessages: [
+      {
+        path: req.originalUrl,
+        message: "API DOESN'T EXIST"
+      }
+    ]
+  })
 });
 
 export default app;
