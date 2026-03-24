@@ -1,35 +1,67 @@
-import { Worker } from "bullmq";
+import { Worker, Job } from "bullmq";
+import { IMessage } from "../app/modules/message/message.interface";
 import { Message } from "../app/modules/message/message.model";
+import { connectionBullMQ } from "../config/bullMQ.config";
+import { sendNotifications } from "../helpers/notificationsHelper";
+import { Chat } from "../app/modules/chat/chat.model";
+import { Types } from "mongoose";
 
-const worker = new Worker("messageQueue", async (job) => {
-    const { payload } = job.data;
+const messageWorker = new Worker(
+    "messageQueue",
+    async (job: Job) => {
+        const { payload } = job.data as { payload: IMessage };
 
-    // Insert to DB
-    const response = await Message.create(payload);
+        try {
+            // Save message to DB
+            const savedMessage = await Message.create(payload);
+            console.log(`✅ Message saved to DB: ${savedMessage._id}`);
+            const chat = await Chat.findById(payload.chatId);
+            //  CALL NOTIFICATION HERE
+            await sendNotifications({
+                text: "New message received",
+                receiver: chat?.participants.find((participant: Types.ObjectId) => participant.toString() !== payload.sender.toString()) as Types.ObjectId,
+                sender: payload.sender,
+                message: payload.text,
+                referenceId: savedMessage._id,
+                screen: "CHAT",
+                type: "USER",
+            });
 
-    // @ts-ignore
-    const io = global.io;
-    if (io) io.emit(`getMessage::${payload.chatId}`, response);
+            console.log(`🔔 Notification sent → User: ${chat?.participants.find((participant: Types.ObjectId) => participant.toString() !== payload.sender.toString()) as Types.ObjectId}`);
 
-    return response;
+            return { success: true, message: "Message sent successfully" };
+
+        } catch (error) {
+            console.error("Message Worker Error:", error);
+            throw error;
+        }
+    },
+    {
+        connection: connectionBullMQ,
+        concurrency: 5,
+    }
+);
+
+messageWorker.on("completed", (job) => {
+    console.log(`😁😁😁 Queue completed successfully`);
 });
 
-worker.on("ready", () => {
-    console.log("✅ Message worker is ready to process jobs");
+messageWorker.on("failed", (job, err) => {
+    console.error(`❌ Queue failed: ${job?.id}`, err);
+});
+messageWorker.on("failed", (job, err) => {
+    if (!job) return;
+
+    const attemptsMade = job.attemptsMade;
+    const maxAttempts = job.opts.attempts ?? 1;
+
+    if (attemptsMade < maxAttempts) {
+        console.log(
+            `🔁 Retrying Queue ${job.id} (${attemptsMade}/${maxAttempts})`
+        );
+    } else {
+        console.error(`💀 Queue permanently failed: ${job.id}`, err);
+    }
 });
 
-worker.on("error", (err) => {
-    console.error("❌ Message worker error:", err);
-});
-
-worker.on("completed", (job) => {
-    console.log(
-        `🎉 Job ${job.id} has been completed ${new Date().toLocaleString()}`,
-    );
-});
-
-worker.on("failed", (job, err) => {
-    console.error(`❌ Job ${job?.id} has failed with error: ${err.message}`);
-});
-
-export default worker;
+export default messageWorker;
