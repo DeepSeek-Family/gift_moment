@@ -8,3 +8,4 @@ SECURITY.md
 *.txt
 *questions.md
 *.log
+*.vscode*

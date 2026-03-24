@@ -7,82 +7,50 @@ import { Subscription } from '../app/modules/subscription/subscription.model';
 
 
 export const handleSubscriptionUpdated = async (data: Stripe.Subscription) => {
-
-    // Retrieve the subscription from Stripe
     const subscription = await stripe.subscriptions.retrieve(data.id);
-
-    // Retrieve the customer associated with the subscription
+  
     const customer = (await stripe.customers.retrieve(
-        subscription.customer as string
+      subscription.customer as string
     )) as Stripe.Customer;
-
-    // Extract price ID from subscription items
-    const priceId = subscription.items.data[0]?.price?.id;
-
-    // Retrieve the invoice to get the transaction ID and amount paid
-    const invoice = await stripe.invoices.retrieve(
-        subscription.latest_invoice as string,
+  
+    const priceId =
+      subscription.items?.data?.[0]?.price?.id ||
+      (subscription as any)?.plan?.id;
+  
+    if (!priceId || !customer?.email) return;
+  
+    const existingUser = await User.findOne({ email: customer.email });
+    if (!existingUser) return;
+  
+    const pricingPlan = await Package.findOne({ priceId });
+    if (!pricingPlan) return;
+  
+    const invoice = await stripe.invoices.retrieve(subscription.latest_invoice as string);
+    const paymentIntentValue = invoice?.payment_intent;
+    const trxId =
+      typeof paymentIntentValue === "string"
+        ? paymentIntentValue
+        : paymentIntentValue?.id || subscription.latest_invoice?.toString() || "N/A";
+    const amountPaid = (invoice?.total ?? 0) / 100;
+  
+    const currentPeriodStart = new Date(subscription.current_period_start * 1000);
+    const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+    const remainingMs = currentPeriodEnd.getTime() - Date.now();
+    const remainingDays = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
+  
+    await Subscription.findOneAndUpdate(
+      { subscriptionId: subscription.id },
+      {
+        user: existingUser._id,
+        customerId: customer.id,
+        package: pricingPlan._id,
+        status: subscription.status === "active" ? "active" : "cancel",
+        price: amountPaid,
+        trxId,
+        currentPeriodStart: currentPeriodStart.toISOString(),
+        currentPeriodEnd: currentPeriodEnd.toISOString(),
+        remaining: remainingDays,
+      },
+      { new: true, upsert: true }
     );
-
-    const trxId = invoice?.payment_intent;
-    const amountPaid = invoice?.total / 100;
-
-    if (customer?.email) {
-        // Find the user by email
-        const existingUser = await User.findOne({ email: customer?.email });
-
-        if (existingUser) {
-            // Find the pricing plan by priceId
-            const pricingPlan = await Package.findOne({ priceId });
-
-            if (pricingPlan) {
-                // Find the current active subscription
-                const currentActiveSubscription = await Subscription.findOne({ userId: existingUser?._id, status: 'active' });
-
-                if (currentActiveSubscription) {
-                    if (
-                        (currentActiveSubscription as any)?.package?.priceId !==
-                        pricingPlan.price
-                    ) {
-
-                        // Deactivate the old subscription
-                        await Subscription.findByIdAndUpdate(currentActiveSubscription._id, { status: 'deactivated' }, { new: true });
-
-                        // Create a new subscription
-                        const newSubscription = new Subscription({
-                            userId: existingUser._id,
-                            customerId: customer?.id,
-                            packageId: pricingPlan._id,
-                            status: 'active',
-                            trxId,
-                            amountPaid,
-                        });
-
-                        await newSubscription.save();
-                    }
-                } else {
-
-                    // If no active subscription found, check for a deactivated one with the same priceId
-                    const deactivatedSubscription = await Subscription.findOne({
-                        userId: existingUser._id,
-                        status: 'deactivated',
-                    });
-
-                    if (deactivatedSubscription) {
-                        await Subscription.findByIdAndUpdate(
-                            deactivatedSubscription._id,
-                            { status: 'active' },
-                            { new: true }
-                        );
-                    }
-                }
-            } else {
-               console.log(`Pricing plan with Price ID: ${priceId} not found!`); // Log the error for debugging
-            }
-        } else {
-            console.log(`User with email: ${customer?.email} not found!`);
-        }
-    } else {
-        console.log('No email found for the customer!');
-    }
-}
+  };

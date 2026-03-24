@@ -18,13 +18,11 @@ const sendMessageToQueue = async (payload: IMessage, user: JwtPayload) => {
   // Return immediately (async)
   return { status: "queued" };
 };
-// TODO: need to add authorizer error handling
 const getMessageFromDB = async (id: string, query: Record<string, unknown>, user: JwtPayload) => {
   const chat = await Chat.findById(id).lean();
   if (!chat) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Chat not found!");
   }
-  console.log("\n \n \n ", user.id);
   if (!chat.participants.some((p) => p.toString() === user.id)) {
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,

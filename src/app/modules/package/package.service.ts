@@ -3,35 +3,39 @@ import { Package } from "./package.model";
 import mongoose from "mongoose";
 import { createSubscriptionProduct } from "../../../helpers/createSubscriptionProductHelper";
 import stripe from "../../../config/stripe";
+import { JwtPayload } from "jsonwebtoken";
+import { StatusCodes } from "http-status-codes";
+import ApiError from "../../../errors/ApiErrors";
 
 const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> => {
-
     const productPayload = {
         title: payload.title,
         duration: payload.duration,
         price: Number(payload.price),
-    }
+        moneySaved: payload.moneySaved,
+    };
 
     const product = await createSubscriptionProduct(productPayload);
 
-
     if (!product) {
         console.error("Failed to create subscription product in Stripe");
+        return null;
     }
 
-    if (product) {
-        payload.paymentLink = product.paymentLink
-        payload.productId = product.productId
-    }
+    payload.paymentLink = product.paymentLink;
+    payload.productId = product.productId;
+    payload.priceId = product.priceId;
 
     const result = await Package.create(payload);
+
     if (!result) {
-        await stripe.products.del(product?.productId || "");
+        await stripe.products.del(product.productId);
         console.error("Failed to create package in DB");
+        return null;
     }
 
     return result;
-}
+};
 
 const updatePackageToDB = async (id: string, payload: IPackage): Promise<IPackage | null> => {
 
@@ -52,16 +56,19 @@ const updatePackageToDB = async (id: string, payload: IPackage): Promise<IPackag
     return result;
 }
 
+// Get all packages from DB for user to see the packages
+const getPackageFromDB = async (): Promise<IPackage[]> => {
 
-const getPackageFromDB = async (paymentType: string): Promise<IPackage[]> => {
-    const query: any = {
-        status: "Active"
-    }
-    if (paymentType) {
-        query.paymentType = paymentType
-    }
+    const result = await Package.find({status: "Active"}).lean();
+    return result ? result : [];
+}
 
-    const result = await Package.find(query);
+// Get package details from DB for admin to see the package details
+const getAllPackagesFromDBForAdmin = async (user: JwtPayload): Promise<IPackage[]> => {
+    const result = await Package.find().lean();
+    if (!result) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "No packages found");
+    }
     return result;
 }
 
@@ -98,5 +105,6 @@ export const PackageService = {
     updatePackageToDB,
     getPackageFromDB,
     getPackageDetailsFromDB,
-    deletePackageToDB
+    deletePackageToDB,
+    getAllPackagesFromDBForAdmin
 }

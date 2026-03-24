@@ -16,7 +16,7 @@ router
         PackageController.createPackage
     )
     .get(PackageController.getPackage)
-
+router.route("/admin/all").get(auth(USER_ROLES.SUPER_ADMIN), PackageController.getAllPackagesForAdmin)
 router
     .route("/:id")
     .patch(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), PackageController.updatePackage)

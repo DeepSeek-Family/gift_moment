@@ -13,7 +13,7 @@ const packageSchema = new Schema<IPackage, PackageModel>(
             required: true,
             min: [0, "Price cannot be negative"]
         },
-        discount: {
+        moneySaved: {
             type: Number,
             required: false,
             min: [0, "Discount cannot be negative"]
@@ -33,13 +33,14 @@ const packageSchema = new Schema<IPackage, PackageModel>(
             type: String,
             required: true
         },
-        credit: {
-            type: Number,
-            required: true
-        },
+       
         feature: {
             type: [String],
             required: true
+        },
+        priceId: {
+            type: String,
+            required: false
         },
         paymentLink: {
             type: String,
