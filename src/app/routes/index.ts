@@ -12,6 +12,7 @@ import { ChatRoutes } from "../modules/chat/chat.routes";
 import { MessageRoutes } from "../modules/message/message.routes";
 import { PackageRoutes } from "../modules/package/package.routes";
 import { ContactRoutes } from "../modules/contact/contact.route";
+import { SubscriptionRoutes } from "../modules/subscription/subscription.routes";
 const router = express.Router();
 
 const apiRoutes = [
@@ -28,6 +29,7 @@ const apiRoutes = [
   { path: "/chat", route: ChatRoutes },
   { path: "/message", route: MessageRoutes },
   { path: "/package", route: PackageRoutes },
+  { path: "/subscription", route: SubscriptionRoutes },
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));

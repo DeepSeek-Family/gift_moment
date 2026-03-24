@@ -2,8 +2,6 @@ import express from 'express';
 import { SendGiftController } from './sendgift.controller';
 import { USER_ROLES } from '../../../enums/user';
 import auth from '../../middlewares/auth';
-import validateRequest from '../../middlewares/validateRequest';
-import { SendGiftValidations } from './sendgift.validation';
 
 const router = express.Router();
 

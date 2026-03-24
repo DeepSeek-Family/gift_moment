@@ -118,7 +118,9 @@ export const createSendGiftForUserIntoDB = async (
 
 
 const getMyGiftsFromDB = async (user: JwtPayload, query: any) => {
-    const qb = new QueryBuilder(SendGift.find({ receiverId: user.id }), query).fields().sort().paginate();
+    const qb = new QueryBuilder(SendGift.find({ receiverId: user.id }), query).fields().sort().paginate().populate(["cardId"], {
+        select: "file isFree price type isActive isAdmin occasionId createdAt updatedAt __v",
+    });
     const [result, paginationInfo] = await Promise.all([
         qb.modelQuery.exec(),
         qb.getPaginationInfo(),

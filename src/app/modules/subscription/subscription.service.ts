@@ -3,7 +3,6 @@ import { Package } from "../package/package.model";
 import { ISubscription } from "./subscription.interface";
 import { Subscription } from "./subscription.model";
 import stripe from "../../../config/stripe";
-import { User } from "../user/user.model";
 
 
 const subscriptionDetailsFromDB = async (user: JwtPayload): Promise<{ subscription: ISubscription | {} }> => {
@@ -18,8 +17,7 @@ const subscriptionDetailsFromDB = async (user: JwtPayload): Promise<{ subscripti
     // Check subscription status and update database accordingly
     if (subscriptionFromStripe?.status !== "active") {
         await Promise.all([
-            User.findByIdAndUpdate(user.id, { isSubscribed: false }, { new: true }),
-            Subscription.findOneAndUpdate({ user: user.id }, { status: "expired" }, { new: true }),
+            Subscription.findOneAndUpdate({ user: user.id }, { status: "expired", remaining: 0 }, { new: true }),
         ]);
     }
 
@@ -38,8 +36,7 @@ const companySubscriptionDetailsFromDB = async (id: string): Promise<{ subscript
     // Check subscription status and update database accordingly
     if (subscriptionFromStripe?.status !== "active") {
         await Promise.all([
-            User.findByIdAndUpdate(id, { isSubscribed: false }, { new: true }),
-            Subscription.findOneAndUpdate({ user: id }, { status: "expired" }, { new: true }),
+            Subscription.findOneAndUpdate({ user: id }, { status: "expired", remaining: 0 }, { new: true }),
         ]);
     }
 
