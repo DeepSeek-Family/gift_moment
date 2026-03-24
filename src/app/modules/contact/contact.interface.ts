@@ -1,10 +1,10 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { Model } from 'mongoose';
 
-export type IContuct = {
+export type IContact = {
     user: JwtPayload,
     subject: string,
     message: string,
 };
 
-export type ContuctModel = Model<IContuct>;
+export type ContactModel = Model<IContact>;

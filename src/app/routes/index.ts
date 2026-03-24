@@ -8,10 +8,10 @@ import { SendGiftRoutes } from "../modules/sendgift/sendgift.route";
 import { RuleRoutes } from "../modules/rule/rule.route";
 import { NotificationRoutes } from "../modules/notification/notification.routes";
 import { PaymentRoutes } from "../modules/payment/payment.route";
-import { ContuctRoutes } from "../modules/contuct/contuct.route";
 import { ChatRoutes } from "../modules/chat/chat.routes";
 import { MessageRoutes } from "../modules/message/message.routes";
 import { PackageRoutes } from "../modules/package/package.routes";
+import { ContactRoutes } from "../modules/contact/contact.route";
 const router = express.Router();
 
 const apiRoutes = [
@@ -24,7 +24,7 @@ const apiRoutes = [
   { path: "/rule", route: RuleRoutes },
   { path: "/notification", route: NotificationRoutes },
   { path: "/payment", route: PaymentRoutes },
-  { path: "/contuct", route: ContuctRoutes },
+  { path: "/contact", route: ContactRoutes },
   { path: "/chat", route: ChatRoutes },
   { path: "/message", route: MessageRoutes },
   { path: "/package", route: PackageRoutes },
