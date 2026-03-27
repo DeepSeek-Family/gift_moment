@@ -30,7 +30,7 @@ router.route("/")
             }
         },
         CardsController.createCards)
-    .get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.USER), CardsController.getAllCards);
+    .get(CardsController.getAllCards);
 
 router.route("/occasion/:id")
     .get(auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.USER), CardsController.getAllCardBasedOnOccasion);

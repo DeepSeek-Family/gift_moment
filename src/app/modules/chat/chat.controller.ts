@@ -9,7 +9,7 @@ const createChat = catchAsync(async (req: Request, res: Response) => {
     const otherUser = req.params.id;
 
     const participants = [user?.id, otherUser];
-    const chat = await ChatService.createChatToDB(participants);
+    const chat = await ChatService.createChatToDB(participants, user?.id);
 
     sendResponse(res, {
         statusCode: StatusCodes.OK,

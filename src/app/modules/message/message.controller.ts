@@ -22,7 +22,7 @@ const getMessage = catchAsync(async (req: Request, res: Response) => {
     success: true,
     message: 'Message Retrieve Successfully',
     pagination: messages.meta,
-    data: messages.messages,
+    data: messages.messages || [],
   });
 });
 

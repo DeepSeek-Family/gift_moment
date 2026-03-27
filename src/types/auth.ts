@@ -1,3 +1,5 @@
+import { USER_ROLES } from "../enums/user";
+
 export type IVerifyEmail = {
     email: string;
     oneTimeCode: number;
@@ -18,4 +20,13 @@ export type IChangePassword = {
     newPassword: string;
     confirmPassword: string;
 };
-  
+
+
+export type IAddNewUserAsAdmin = {
+    name: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    role: USER_ROLES;
+    verified: boolean;
+};

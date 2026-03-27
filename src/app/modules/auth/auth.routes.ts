@@ -35,7 +35,7 @@ router.post(
         try {
             const { email, oneTimeCode } = req.body;
 
-            req.body = { email, oneTimeCode: Number(oneTimeCode)};
+            req.body = { email, oneTimeCode: Number(oneTimeCode) };
             next();
 
         } catch (error) {
@@ -64,7 +64,10 @@ router.post(
     AuthController.resendVerificationEmail
 );
 
-
+router.route("/admin/create-user").post(
+    auth(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN),
+    AuthController.addNewUserAsAdmin
+);
 router.delete(
     '/delete-account',
     auth(USER_ROLES.ADMIN),

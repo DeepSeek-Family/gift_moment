@@ -6,6 +6,7 @@ import ApiError from "../../../errors/ApiErrors";
 import { emailHelper } from "../../../helpers/emailHelper";
 import { emailTemplate } from "../../../shared/emailTemplate";
 import {
+  IAddNewUserAsAdmin,
   IAuthResetPassword,
   IChangePassword,
   ILoginData,
@@ -16,6 +17,7 @@ import generateOTP from "../../../util/generateOTP";
 import { ResetToken } from "../resetToken/resetToken.model";
 import { User } from "../user/user.model";
 import { jwtHelpers } from "../../../helpers/jwtHelper";
+import { USER_ROLES } from "../../../enums/user";
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -354,6 +356,20 @@ const deleteUserFromDB = async (user: JwtPayload, password: string) => {
   return;
 };
 
+// add new user as admin
+const addNewUserAsAdminToDB = async (payload: IAddNewUserAsAdmin) => {
+  const { name, email, password, role } = payload;
+  const isExistUser = await User.findOne({ email });
+  if (isExistUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User already exists!");
+  }
+  const newUser = await User.create({ name, email, password, confirmPassword: password, role: role || USER_ROLES.USER, verified: true });
+  if (!newUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create user!");
+  }
+  return newUser;
+};
+
 export const AuthService = {
   verifyEmailToDB,
   loginUserFromDB,
@@ -363,4 +379,5 @@ export const AuthService = {
   newAccessTokenToUser,
   resendVerificationEmailToDB,
   deleteUserFromDB,
+  addNewUserAsAdminToDB,
 };

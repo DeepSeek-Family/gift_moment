@@ -103,6 +103,17 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const addNewUserAsAdmin = catchAsync(async (req: Request, res: Response) => {
+    const { ...userData } = req.body;
+    const result = await AuthService.addNewUserAsAdminToDB(userData);
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: 'User created successfully',
+    });
+});
+
+
 export const AuthController = {
     verifyEmail,
     loginUser,
@@ -111,5 +122,6 @@ export const AuthController = {
     changePassword,
     newAccessToken,
     resendVerificationEmail,
-    deleteUser
+    deleteUser,
+    addNewUserAsAdmin
 };

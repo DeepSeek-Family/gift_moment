@@ -13,6 +13,8 @@ import { MessageRoutes } from "../modules/message/message.routes";
 import { PackageRoutes } from "../modules/package/package.routes";
 import { ContactRoutes } from "../modules/contact/contact.route";
 import { SubscriptionRoutes } from "../modules/subscription/subscription.routes";
+import { DashboardRoutes } from "../modules/dashboard/Analytics/dashboard.route";
+import { UserManagementRoutes } from "../modules/dashboard/UserManagement/userManagement.routes";
 const router = express.Router();
 
 const apiRoutes = [
@@ -30,6 +32,8 @@ const apiRoutes = [
   { path: "/message", route: MessageRoutes },
   { path: "/package", route: PackageRoutes },
   { path: "/subscription", route: SubscriptionRoutes },
+  { path: "/dashboard", route: DashboardRoutes },
+  { path: "/admin", route: UserManagementRoutes },
 ];
 
 apiRoutes.forEach((route) => router.use(route.path, route.route));

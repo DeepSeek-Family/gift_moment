@@ -1,5 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
-import {  ICards } from './cards.interface';
+import { ICards } from './cards.interface';
 import { Cards } from './cards.model';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
@@ -45,7 +45,6 @@ const createCardsIntoDB = async (user: JwtPayload, payload: ICards) => {
  */
 const getAllFilesFromDB = async (query: Record<string, any>) => {
     const result = await Cards.find({
-        type: query.type
     });
     return result ? result : [];
 }

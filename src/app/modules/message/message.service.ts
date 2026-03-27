@@ -20,16 +20,13 @@ const sendMessageToQueue = async (payload: IMessage, user: JwtPayload) => {
 };
 const getMessageFromDB = async (id: string, query: Record<string, unknown>, user: JwtPayload) => {
   const chat = await Chat.findById(id).lean();
-  if (!chat) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "Chat not found!");
-  }
-  if (!chat.participants.some((p) => p.toString() === user.id)) {
+  if (!chat?.participants.some((p) => p.toString() === user.id)) {
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,
       "You are not authorized to access this chat!"
     );
   }
-  const qb = new QueryBuilder(Message.find({ chatId: id }), query).fields().sort().paginate();
+  const qb = new QueryBuilder(Message.find({ chatId: id }), query).fields().sort().paginate().populate(["sender"], { "sender.name": 1, "sender.profile": 1 });
   const [messages, meta] = await Promise.all([
     qb.modelQuery.exec(),
     qb.getPaginationInfo(),
