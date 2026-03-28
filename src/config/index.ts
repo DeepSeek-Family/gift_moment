@@ -20,8 +20,14 @@ export default {
   stripe: {
     stripeSecretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    /** Subscription Payment Links (`createSubscriptionProductHelper`) */
     paymentSuccess: process.env.STRIPE_SUCCESS_URL,
     paymentCancel: process.env.STRIPE_CANCEL_URL,
+    /** Stripe Checkout for one-time payments (e.g. send gift). Falls back to subscription URLs if unset. */
+    checkoutSuccess:
+      process.env.STRIPE_CHECKOUT_SUCCESS_URL || process.env.STRIPE_SUCCESS_URL,
+    checkoutCancel:
+      process.env.STRIPE_CHECKOUT_CANCEL_URL || process.env.STRIPE_CANCEL_URL,
   },
   email: {
     from: process.env.EMAIL_FROM,

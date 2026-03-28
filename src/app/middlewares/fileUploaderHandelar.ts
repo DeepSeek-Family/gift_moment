@@ -25,6 +25,12 @@ const UPLOAD_CONFIG: Record<string, UploadConfigItem> = {
     maxCount: 3,
     maxSize: 20 * 1024 * 1024, // 20MB
   },
+  gif: {
+    folder: "gif",
+    allowedMimeTypes: ["image/gif"],
+    maxCount: 3,
+    maxSize: 20 * 1024 * 1024,
+  },
   doc: {
     folder: "docs",
     allowedMimeTypes: ["application/pdf", "application/msword"],
@@ -33,13 +39,31 @@ const UPLOAD_CONFIG: Record<string, UploadConfigItem> = {
   },
   file: {
     folder: "file",
-    allowedMimeTypes: ["image/jpeg", "image/png", "image/jpg", "image/video", "video/mp4", "audio/mpeg", "application/pdf", "application/msword"],
+    allowedMimeTypes: ["image/jpeg", "image/png", "image/jpg", "image/video", "video/mp4", "audio/mpeg", "application/pdf", "application/msword" , "image/gif"],
     maxCount: 5,
     maxSize: 5000 * 1024 * 1024, // 5000MB
   },
   media: {
     folder: "media",
-    allowedMimeTypes: ["video/mp4", "audio/mpeg"],
+    allowedMimeTypes: ["video/mp4",
+      "audio/mpeg",
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "image/webp",
+      "image/svg+xml",
+      "image/tiff",
+      "image/bmp",
+      "image/ico",
+      "image/heic",
+      "image/heif",
+      "video/mpeg",
+      "video/quicktime",
+      "video/webm",
+      "audio/mpeg",
+      "audio/wav",
+      "image/gif",
+    ],
     maxCount: 2,
     maxSize: 50 * 1024 * 1024 * 1024, // 50GB
   },

@@ -40,7 +40,15 @@ const getAllBanner = catchAsync(async (req: Request, res: Response) => {
         data: result
     });
 });
-
+const getAllBannerByAdmin = catchAsync(async (req: Request, res: Response) => {
+    const result = await BannerService.getAllBannerFromDBByAdmin();
+    sendResponse(res, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: 'Banner fetched successfully',
+        data: result
+    });
+});
 
 
 const deleteBanner = catchAsync(async (req: Request, res: Response) => {
@@ -103,5 +111,6 @@ export const BannerController = {
     bannerCreate,
     getAllBanner,
     deleteBanner,
-    updateBannerStatus
+    updateBannerStatus,
+    getAllBannerByAdmin
 }

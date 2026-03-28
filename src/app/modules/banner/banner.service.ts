@@ -28,6 +28,11 @@ const getAllBannerFromDB = async () => {
 }
 
 
+const getAllBannerFromDBByAdmin = async () => {
+    const result = await BannerModel.find();
+    return result ? result : [];
+}
+
 
 const deleteBannerFromDB = async (user: JwtPayload, id: string) => {
     if (user.role != USER_ROLES.SUPER_ADMIN) {
@@ -65,5 +70,6 @@ export const BannerService = {
     createBannerToDB,
     getAllBannerFromDB,
     deleteBannerFromDB,
-    turnOffStatusOfBannerFromDB
+    turnOffStatusOfBannerFromDB,
+    getAllBannerFromDBByAdmin
 }

@@ -72,8 +72,8 @@ export const createSendGiftForUserIntoDB = async (
                     senderId: sender?._id?.toString() ?? "",
                     receiverId: receiver?._id?.toString() ?? "",
                 },
-                success_url: config.stripe.paymentSuccess,
-                cancel_url: config.stripe.paymentCancel,
+                success_url: config.stripe.checkoutSuccess,
+                cancel_url: config.stripe.checkoutCancel,
             });
         } catch (error) {
             await SendGift.findByIdAndDelete(gift._id);

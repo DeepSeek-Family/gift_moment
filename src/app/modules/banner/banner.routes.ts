@@ -29,6 +29,9 @@ router.route("/")
     BannerController.bannerCreate)
   .get(BannerController.getAllBanner);
 
+router.route("/admin")
+  .get(auth(USER_ROLES.SUPER_ADMIN), BannerController.getAllBannerByAdmin);
+
 router.route("/:id")
   .delete(auth(USER_ROLES.SUPER_ADMIN), BannerController.deleteBanner)
   .patch(auth(USER_ROLES.SUPER_ADMIN), validateRequest(BannerValidation.updateBannerZodSchema), BannerController.updateBannerStatus);
