@@ -37,9 +37,15 @@ const UPLOAD_CONFIG: Record<string, UploadConfigItem> = {
     maxCount: 5,
     maxSize: 50 * 1024 * 1024, // 50MB
   },
+  audio: {
+    folder: "audio",
+    allowedMimeTypes: ["audio/mpeg", "audio/wav", "audio/mp3", "audio/x-m4a", "audio/mp4","audio/aac"],
+    maxCount: 5,
+    maxSize: 50 * 1024 * 1024, // 50MB
+  },
   file: {
     folder: "file",
-    allowedMimeTypes: ["image/jpeg", "image/png", "image/jpg", "image/video", "video/mp4", "audio/mpeg", "application/pdf", "application/msword" , "image/gif"],
+    allowedMimeTypes: ["image/jpeg", "image/png", "image/jpg", "image/video", "video/mp4", "audio/mpeg", "application/pdf", "application/msword", "image/gif", "audio/x-m4a"],
     maxCount: 5,
     maxSize: 5000 * 1024 * 1024, // 5000MB
   },
@@ -63,6 +69,8 @@ const UPLOAD_CONFIG: Record<string, UploadConfigItem> = {
       "audio/mpeg",
       "audio/wav",
       "image/gif",
+      "audio/x-m4a",
+      "audio/aac"
     ],
     maxCount: 2,
     maxSize: 50 * 1024 * 1024 * 1024, // 50GB

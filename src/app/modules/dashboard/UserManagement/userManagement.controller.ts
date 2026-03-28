@@ -25,7 +25,20 @@ const getSingleUser = catchAsync(async (req, res) => {
     });
 });
 
+const banTheUserAsAdmin = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const payload = req.body;
+    const result = await UserManagementService.banTheUserAsAdmin(id, payload);
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: 'User banned successfully',
+        data: result,
+    });
+});
+
 export const UserManagementController = {
     getAllUsers,
-    getSingleUser
+    getSingleUser,
+    banTheUserAsAdmin
 }

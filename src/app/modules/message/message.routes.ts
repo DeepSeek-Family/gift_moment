@@ -19,6 +19,16 @@ router.post(
       if (image) {
         req.body.image = image;
       }
+      const audio = getSingleFilePath(
+        req.files as Record<string, Express.Multer.File[]>,
+        "audio"
+      );
+      if (audio) {
+        req.body.audio = audio;
+      }
+      console.log("audio\n\n", audio);
+
+      console.log("req.body", req.body);
       next();
     } catch (error) {
       next(error);

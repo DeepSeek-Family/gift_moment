@@ -29,10 +29,7 @@ const giftWorker = new Worker(
             await gift.save();
             //TODO: Need to create chat room with sender and receiver also need to send message to receiver. if receiver is not found then no need to create chat room and send message.
             if ((gift as any).receiverId) {
-                const chat: any = await ChatService.createChatToDB([
-                    (gift as any).senderId?._id,
-                    (gift as any).receiverId?._id,
-                ]);
+                const chat: any = await ChatService.createChatToDB((gift as any).senderId?._id, (gift as any).receiverId?._id);
                 await MessageService.sendMessageToQueue(
                     {
                         chatId: chat._id as any as Types.ObjectId,
