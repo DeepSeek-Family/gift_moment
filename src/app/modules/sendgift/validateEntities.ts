@@ -19,10 +19,7 @@ const validateEntities = (
     if (!sender)
         throw new ApiError(StatusCodes.NOT_FOUND, `Sender not found with ID: ${payload.senderId}`);
     if (payload.receiverEmail && !receiver)
-        throw new ApiError(
-            StatusCodes.NOT_FOUND,
-            `Receiver not found with email: ${payload.receiverEmail}`
-        );
+        console.log(`Receiver not found with email: ${payload.receiverEmail}`);
     if (sender?.role !== USER_ROLES.USER)
         throw new ApiError(StatusCodes.FORBIDDEN, "Unauthorized to send gifts");
 };
