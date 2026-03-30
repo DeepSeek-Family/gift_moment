@@ -1,14 +1,10 @@
 import Redis from "ioredis";
 import { logger, errorLogger } from "../shared/logger";
 import colors from "colors";
-import config from ".";
-
-const redisHost = config.bullMQ.host || "redis";
-const redisPort = process.env.REDIS_PORT || 6379;
+import { redisConnectionOptions } from "./bullMQ.config";
 
 const redisClient = new Redis({
-  host: redisHost,
-  port: Number(redisPort),
+  ...redisConnectionOptions,
   retryStrategy: (times) => {
     const delay = Math.min(times * 50, 2000);
     return delay;

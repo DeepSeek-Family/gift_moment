@@ -8,23 +8,35 @@ import { Cards } from "../app/modules/cards/cards.model";
 import { Types } from "mongoose";
 import ApiError from "../errors/ApiErrors";
 import { StatusCodes } from "http-status-codes";
-import { Chat } from "../app/modules/chat/chat.model";
 import { ChatService } from "../app/modules/chat/chat.service";
 import { MessageService } from "../app/modules/message/message.service";
 import { sendNotifications } from "../helpers/notificationsHelper";
 import { JwtPayload } from "jsonwebtoken";
+import { logger, errorLogger } from "../shared/logger";
+
 const giftWorker = new Worker(
     "giftQueue",
     async (job: any) => {
         const { giftId } = job.data;
         try {
+            logger.info(`giftQueue processing jobId=${job.id} giftId=${giftId}`);
             const gift = await SendGift.findById(giftId).populate("senderId");
             if (!gift) throw new ApiError(StatusCodes.NOT_FOUND, "Gift not found");
+            if (!gift.receiverEmail || !String(gift.receiverEmail).trim()) {
+                throw new ApiError(StatusCodes.BAD_REQUEST, "Gift has no receiver email");
+            }
             const baseUrl = (config as any).app_url?.replace(/\/$/, "") || "http://localhost:9990";
             const card = await Cards.findById((gift as any).cardId as Types.ObjectId);
             const viewGiftUrl = card?.file ? `${baseUrl}/${card.file.replace(/^\//, "")}` : baseUrl;
             const html = emailTemplate.giftEmailTemplate((gift as any).senderId?.name || "Gift Moment", gift.message || "No message provided", viewGiftUrl);
-            await sendEmail(gift.receiverEmail, "🎁 You received a gift!", html);
+            try {
+                await sendEmail(gift.receiverEmail, "🎁 You received a gift!", html);
+            } catch (mailErr: any) {
+                errorLogger.error(
+                    `sendEmail failed for gift ${giftId} to ${gift.receiverEmail}: ${mailErr?.message || mailErr}`
+                );
+                throw mailErr;
+            }
             gift.status = "sent";
             await gift.save();
             //TODO: Need to create chat room with sender and receiver also need to send message to receiver. if receiver is not found then no need to create chat room and send message.
@@ -59,7 +71,9 @@ const giftWorker = new Worker(
             });
             console.log(`✅ Gift sent and status updated for ${gift._id}`);
         } catch (error) {
-            console.error(`❌ Failed to process gift ${job.id}:`, error);
+            errorLogger.error(
+                `Failed to process gift job ${job.id} giftId=${job.data?.giftId}: ${error}`
+            );
             if (job.data?.giftId) {
                 await SendGift.findByIdAndUpdate(job.data.giftId, { status: "failed" });
             }
