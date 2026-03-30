@@ -1,3 +1,4 @@
+import "dotenv/config";
 import mongoose from "mongoose";
 import app from "./app";
 import config from "./config";
@@ -6,6 +7,7 @@ import colors from "colors";
 import { socketHelper } from "./helpers/socketHelper";
 import { Server } from "socket.io";
 import seedSuperAdmin from "./DB";
+import { verifySmtpConnection } from "./services/email.service";
 import "./worker/email.worker"; // Start BullMQ worker
 import "./worker/gift.worker"; // Start BullMQ worker
 import "./worker/message.worker"; // Start BullMQ worker
@@ -29,6 +31,8 @@ async function main() {
     if (!redisConnected) {
       throw new Error("Redis connection failed");
     }
+
+    await verifySmtpConnection();
 
     mongoose.connect(config.database_url as string);
     logger.info(colors.green("🚀 Database connected successfully"));

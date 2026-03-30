@@ -33,7 +33,7 @@ const giftWorker = new Worker(
                 await sendEmail(gift.receiverEmail, "🎁 You received a gift!", html);
             } catch (mailErr: any) {
                 errorLogger.error(
-                    `sendEmail failed for gift ${giftId} to ${gift.receiverEmail}: ${mailErr?.message || mailErr}`
+                    `giftQueue sendEmail failed giftId=${giftId} to=${gift.receiverEmail}: ${mailErr?.message || mailErr}${mailErr?.code ? ` code=${mailErr.code}` : ""}${mailErr?.stack ? `\n${mailErr.stack}` : ""}`
                 );
                 throw mailErr;
             }
@@ -69,10 +69,12 @@ const giftWorker = new Worker(
                 screen: "GIFT",
                 type: "USER",
             });
-            console.log(`✅ Gift sent and status updated for ${gift._id}`);
-        } catch (error) {
+            logger.info(`giftQueue giftId=${gift._id} email sent, status=sent`);
+        } catch (error: any) {
+            const msg = error?.message || String(error);
+            const stack = error?.stack ? `\n${error.stack}` : "";
             errorLogger.error(
-                `Failed to process gift job ${job.id} giftId=${job.data?.giftId}: ${error}`
+                `giftQueue job failed jobId=${job.id} giftId=${job.data?.giftId}: ${msg}${stack}`
             );
             if (job.data?.giftId) {
                 await SendGift.findByIdAndUpdate(job.data.giftId, { status: "failed" });
@@ -84,19 +86,21 @@ const giftWorker = new Worker(
 );
 
 giftWorker.on("ready", () => {
-    console.log("✅ Gift worker is ready to process jobs");
+    logger.info("Gift worker ready (giftQueue)");
 });
 
 giftWorker.on("error", (err) => {
-    console.error("❌ Gift worker error:", err);
+    errorLogger.error(`Gift worker runtime error: ${err?.message || err}`);
 });
 
 giftWorker.on("completed", (job) => {
-    console.log(`🎉 Job ${job.id} has been completed ${new Date().toLocaleString()}`);
+    logger.info(`giftQueue jobId=${job.id} completed`);
 });
 
 giftWorker.on("failed", (job, err) => {
-    console.error(`❌ Job ${job?.id} has failed with error: ${err.message}`);
+    errorLogger.error(
+        `giftQueue jobId=${job?.id} permanently failed: ${err?.message || err}`
+    );
 });
 
 export default giftWorker;
