@@ -5,8 +5,8 @@ const createSendGiftZodSchema = z.object({
     body: z.object({
         cardId: z.string({ required_error: "Card ID is required" }).min(1, "Card ID cannot be empty"),
         senderId: z.string({ required_error: "Sender ID is required" }).min(1, "Sender ID cannot be empty"),
-        receiverId: z.string({ required_error: "Receiver ID is required" }).min(1, "Receiver ID cannot be empty"),
-        receiverEmail: z.string({ required_error: "Receiver email is required" }).email("Invalid email format"),
+        receiverId: z.string({ required_error: "Receiver ID is required" }).min(1, "Receiver ID cannot be empty").optional(),
+        receiverEmail: z.string({ required_error: "Receiver email is required" }).email("Invalid email format").optional(),
         message: z.string().optional(),
         bookingDate: z
             .string({ required_error: "Booking date is required" })
