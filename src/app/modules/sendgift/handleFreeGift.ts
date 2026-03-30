@@ -69,6 +69,8 @@ export const handleFreeGift = async (
             text: "🎉 Gift Moment Card",
         });
     }
+    console.log("gift", gift);
+
     return gift;
 };
 

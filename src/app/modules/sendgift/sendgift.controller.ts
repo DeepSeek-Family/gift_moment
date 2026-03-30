@@ -15,6 +15,8 @@ const sendGift = catchAsync(async (req: Request, res: Response) => {
             message: result.message,
         });
     }
+
+    console.log("Final result\n", result);
     sendResponse(res, {
         statusCode: StatusCodes.CREATED,
         success: true,
