@@ -7,6 +7,24 @@ import { SendGift } from "./sendgift.model";
 import { Cards } from "../cards/cards.model";
 import { IMessage } from "../message/message.interface";
 
+const findOrCreateChatId = async (
+    senderId: Types.ObjectId,
+    receiverId: Types.ObjectId
+) => {
+    let chat = await Chat.findOne({
+        participants: { $all: [senderId, receiverId] },
+        status: true,
+    }).select("_id");
+
+    if (!chat) {
+        chat = await Chat.create({
+            participants: [senderId, receiverId],
+        });
+    }
+
+    return chat._id as Types.ObjectId;
+};
+
 export const handlePaidGift = async (
     payload: ISendGift,
     card: any,
@@ -33,12 +51,20 @@ export const handlePaidGift = async (
 
     // TODO: need to send message with this chat id if chat id not found then create a new chat after that then send message
     const giftId = await Cards.findById(card._id);
-    await Message.create({
-        chatId: (await Chat.findOne({ participants: { $in: [sender._id, receiver._id] } }).select("_id"))?._id as Types.ObjectId,
-        sender: sender._id as Types.ObjectId,
-        image: giftId?.type === "image" ? giftId?.file : undefined,
-        text: "🎉 Gift Moment Card",
-    });
+
+    // Only create/send chat message if receiver exists
+    if (receiver) {
+        const chatId = await findOrCreateChatId(
+            sender._id as Types.ObjectId,
+            receiver._id as Types.ObjectId
+        );
+        await Message.create({
+            chatId,
+            sender: sender._id as Types.ObjectId,
+            image: giftId?.type === "image" ? giftId?.file : undefined,
+            text: "🎉 Gift Moment Card",
+        });
+    }
 
     return { url: session.url, giftId: gift._id };
 };

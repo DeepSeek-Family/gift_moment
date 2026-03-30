@@ -8,6 +8,24 @@ import { Message } from "../message/message.model";
 import { Chat } from "../chat/chat.model";
 import { Cards } from "../cards/cards.model";
 
+const findOrCreateChatId = async (
+    senderId: Types.ObjectId,
+    receiverId: Types.ObjectId
+) => {
+    let chat = await Chat.findOne({
+        participants: { $all: [senderId, receiverId] },
+        status: true,
+    }).select("_id");
+
+    if (!chat) {
+        chat = await Chat.create({
+            participants: [senderId, receiverId],
+        });
+    }
+
+    return chat._id as Types.ObjectId;
+};
+
 export const handleFreeGift = async (
     payload: ISendGift,
     sender: any,
@@ -37,12 +55,20 @@ export const handleFreeGift = async (
     // Send notification
     await sendGiftNotification(gift, sender, receiver);
     const giftId = await Cards.findById(payload.cardId);
-    await Message.create({
-        chatId: (await Chat.findOne({ participants: { $in: [sender._id, receiver._id] } }).select("_id"))?._id as Types.ObjectId,
-        sender: sender._id as Types.ObjectId,
-        image: giftId?.type,
-        text: "🎉 Gift Moment Card",
-    });
+
+    // Create additional chat message (only if receiver exists)
+    if (receiver) {
+        const chatId = await findOrCreateChatId(
+            sender._id as Types.ObjectId,
+            receiver._id as Types.ObjectId
+        );
+        await Message.create({
+            chatId,
+            sender: sender._id as Types.ObjectId,
+            image: giftId?.type,
+            text: "🎉 Gift Moment Card",
+        });
+    }
     return gift;
 };
 
