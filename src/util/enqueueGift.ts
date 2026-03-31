@@ -11,7 +11,7 @@ export const enqueueGift = async (giftId: Types.ObjectId, scheduleDateTime: Date
     );
     const runAt = new Date(Date.now() + delayMs).toISOString();
     logger.info(
-        `giftQueue scheduled jobId=${job.id} giftId=${giftId.toString()} delayMs=${delayMs} runAt=${runAt}`
+        `giftQueue scheduled jobId=${job.id} giftId=${giftId.toString()} delayMs=${delayMs} runAt=${runAt} (gift card email sends at this time, not immediately)`
     );
 };
 

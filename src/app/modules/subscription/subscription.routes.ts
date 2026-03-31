@@ -5,7 +5,7 @@ import { SubscriptionController } from "./subscription.controller";
 const router = express.Router();
 
 router.get("/", 
-    auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), 
+    auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER), 
     SubscriptionController.subscriptions
 );
 

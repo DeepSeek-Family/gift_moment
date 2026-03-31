@@ -4,8 +4,6 @@ import { IMessage } from './message.interface';
 import { Message } from './message.model';
 import QueryBuilder from '../../builder/queryBuilder';
 import { Chat } from '../chat/chat.model';
-import ApiError from '../../../errors/ApiErrors';
-import { StatusCodes } from 'http-status-codes';
 
 const sendMessageToQueue = async (payload: IMessage, user: JwtPayload) => {
   payload.sender = user.id;
@@ -21,10 +19,7 @@ const sendMessageToQueue = async (payload: IMessage, user: JwtPayload) => {
 const getMessageFromDB = async (id: string, query: Record<string, unknown>, user: JwtPayload) => {
   const chat = await Chat.findById(id).lean();
   if (!chat?.participants.some((p) => p.toString() === user.id)) {
-    throw new ApiError(
-      StatusCodes.UNAUTHORIZED,
-      "You are not authorized to access this chat!"
-    );
+    console.log(`You are not authorized to access this chat!`);
   }
   const qb = new QueryBuilder(Message.find({ chatId: id }), query).fields().sort().paginate().populate(["sender"], { "sender.name": 1, "sender.profile": 1 });
   const [messages, meta] = await Promise.all([

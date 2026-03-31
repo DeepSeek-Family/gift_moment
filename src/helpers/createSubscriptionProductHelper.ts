@@ -1,7 +1,6 @@
-import { StatusCodes } from "http-status-codes";
+
 import { IPackage } from "../app/modules/package/package.interface";
-import stripe from "../config/stripe";
-import ApiError from "../errors/ApiErrors";
+import stripe from "../config/stripe"
 import config from "../config";
 
 export const createSubscriptionProduct = async (
@@ -39,7 +38,7 @@ export const createSubscriptionProduct = async (
     });
 
     if (!price?.id) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create price in Stripe");
+        console.log(`Failed to create price in Stripe for product ${product.id}`);
     }
 
     const paymentLink = await stripe.paymentLinks.create({
@@ -55,7 +54,7 @@ export const createSubscriptionProduct = async (
     });
 
     if (!paymentLink.url) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Failed to create payment link");
+        console.log(`Failed to create payment link for product ${product.id}`);
     }
 
     return {

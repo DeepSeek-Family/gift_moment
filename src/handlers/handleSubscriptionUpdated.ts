@@ -41,9 +41,9 @@ export const handleSubscriptionUpdated = async (data: Stripe.Subscription) => {
     await Subscription.findOneAndUpdate(
       { subscriptionId: subscription.id },
       {
-        user: existingUser._id,
+        user: existingUser?._id,
         customerId: customer.id,
-        package: pricingPlan._id,
+        package: pricingPlan?._id,
         status: subscription.status === "active" ? "active" : "cancel",
         price: amountPaid,
         trxId,

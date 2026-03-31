@@ -101,7 +101,7 @@ const storage = multer.diskStorage({
       return cb(
         new ApiError(
           StatusCodes.BAD_REQUEST,
-          `Unsupported field: ${file.fieldname}`
+          `Please Provide a valid field`
         ),
         ""
       );
@@ -130,7 +130,7 @@ const fileFilter = (
     return cb(
       new ApiError(
         StatusCodes.BAD_REQUEST,
-        `Unsupported field: ${file.fieldname}`
+        `Please Provide a valid field`
       )
     );
   }

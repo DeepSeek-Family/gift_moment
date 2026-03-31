@@ -10,7 +10,6 @@ import {
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '../shared/logger';
 import config from '../config';
-import ApiError from '../errors/ApiErrors';
 import stripe from '../config/stripe';
 import { handleCheckoutSessionCompleted, handleCheckoutSessionExpired } from '../handlers/handleCheckoutSessionCompleted';
 
@@ -26,17 +25,17 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
     try {
         event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
     } catch (error) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, `Webhook signature verification failed. ${error}`);
+        console.log(`Webhook signature verification failed. ${error}`);
     }
 
     // Check if the event is valid
     if (!event) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid event received!');
+        console.log(`Invalid event received!`);
     }
 
     // Extract event data and type
-    const data = event.data.object as Stripe.Subscription | Stripe.Account;
-    const eventType = event.type;
+    const data = event?.data.object as Stripe.Subscription | Stripe.Account;
+    const eventType = event?.type;
 
     // Handle the event based on its type
     try {
@@ -69,7 +68,7 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
                 logger.warn(colors.bgGreen.bold(`Unhandled event type: ${eventType}`));
         }
     } catch (error) {
-        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, `Error handling event: ${error}`,);
+        console.log(`Error handling event: ${error}`);
     }
 
     res.sendStatus(200);

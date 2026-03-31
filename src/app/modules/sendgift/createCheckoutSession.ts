@@ -1,7 +1,6 @@
-import { StatusCodes } from "http-status-codes";
+
 import config from "../../../config";
 import stripe from "../../../config/stripe";
-import ApiError from "../../../errors/ApiErrors";
 import { SendGift } from "./sendgift.model";
 
 
@@ -46,6 +45,6 @@ export const createCheckoutSession = async (
         return session;
     } catch (error) {
         await SendGift.findByIdAndDelete(gift._id);
-        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to create checkout session");
+        console.log(`Failed to create checkout session: ${error}`);
     }
 };

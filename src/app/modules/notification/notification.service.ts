@@ -1,8 +1,6 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { Notification } from './notification.model';
 import QueryBuilder from '../../builder/queryBuilder';
-import ApiError from '../../../errors/ApiErrors';
-import { StatusCodes } from 'http-status-codes';
 
 // get notifications
 const getNotificationFromDB = async (user: JwtPayload, query: Record<string, any>) => {
@@ -21,7 +19,7 @@ const getNotificationFromDB = async (user: JwtPayload, query: Record<string, any
 const readNotificationToDB = async (user: JwtPayload, id: string) => {
     const notification = await Notification.findByIdAndUpdate(id, { read: true }, { new: true }).lean();
     if (!notification) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "Notification not found!");
+        console.log(`Notification not found!`);
     }
     return notification;
 };

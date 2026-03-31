@@ -1,6 +1,5 @@
-import { StatusCodes } from 'http-status-codes';
+
 import Stripe from 'stripe';
-import ApiError from '../errors/ApiErrors';
 import stripe from '../config/stripe';
 import { User } from '../app/modules/user/user.model';
 import { Package } from '../app/modules/package/package.model';
@@ -18,35 +17,32 @@ export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
       (subscription as any)?.plan?.id;
   
     if (!priceId) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "No Stripe priceId found in subscription");
+      console.log(`No Stripe priceId found in subscription`);
     }
   
     if (!customer?.email) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "No email found for the customer!");
+      console.log(`No email found for the customer!`);
     }
   
     const existingUser = await User.findOne({ email: customer.email });
   
     if (!existingUser) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Invalid User!");
+      console.log(`Invalid User!`);
     }
   
     const pricingPlan = await Package.findOne({ priceId }).lean();
   
     if (!pricingPlan) {
-      throw new ApiError(
-        StatusCodes.NOT_FOUND,
-        `Pricing plan with Price ID: ${priceId} not found!`
-      );
+      console.log(`Pricing plan with Price ID: ${priceId} not found!`);
     }
   
     const currentActiveSubscription = await Subscription.findOne({
-      user: existingUser._id,
+      user: existingUser?._id,
       status: "active",
     });
   
     if (currentActiveSubscription) {
-      throw new ApiError(StatusCodes.CONFLICT, "User already has an active subscription.");
+      console.log(`User already has an active subscription.`);
     }
   
     const invoice = await stripe.invoices.retrieve(subscription.latest_invoice as string);
@@ -66,9 +62,9 @@ export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
     const remainingDays = Math.max(0, Math.ceil(remainingMs / (1000 * 60 * 60 * 24)));
   
     const newSubscription = new Subscription({
-      user: existingUser._id,
+      user: existingUser?._id,
       customerId: customer.id,
-      package: pricingPlan._id,
+      package: pricingPlan?._id,
       status: "active",
       price: amountPaid,
       subscriptionId: subscription.id,

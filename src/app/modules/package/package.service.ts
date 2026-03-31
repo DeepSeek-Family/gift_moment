@@ -5,7 +5,6 @@ import { createSubscriptionProduct } from "../../../helpers/createSubscriptionPr
 import stripe from "../../../config/stripe";
 import { JwtPayload } from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
-import ApiError from "../../../errors/ApiErrors";
 
 const createPackageToDB = async (payload: IPackage): Promise<IPackage | null> => {
     const productPayload = {
@@ -67,7 +66,7 @@ const getPackageFromDB = async (): Promise<IPackage[]> => {
 const getAllPackagesFromDBForAdmin = async (user: JwtPayload): Promise<IPackage[]> => {
     const result = await Package.find().lean();
     if (!result) {
-        throw new ApiError(StatusCodes.NOT_FOUND, "No packages found");
+        console.log(`No packages found`);
     }
     return result;
 }
